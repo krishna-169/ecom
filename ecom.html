@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusSwap | Elevate Your Fit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@300;400;600;800&display=swap');
+        :root { --neon: #adff2f; --dark: #050505; }
+        body { font-family: 'Inter', sans-serif; background: var(--dark); color: white; margin: 0; padding: 0; }
+        .heading { font-family: 'Syncopate', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .page-section { display: none; min-height: 100vh; animation: fadeIn 0.5s ease; }
+        .active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input, textarea { background: #111 !important; border: 1px solid #333 !important; color: white !important; }
+        input:focus, textarea:focus { border-color: var(--neon) !important; outline: none; }
+    </style>
+</head>
+<body>
+
+    <!-- INTRO PAGE -->
+    <div id="intro-page" class="page-section active-page">
+        <div class="flex flex-col items-center justify-center text-center px-4 min-h-screen">
+            <div class="space-y-6">
+                <h1 class="heading text-6xl md:text-9xl font-black tracking-tighter">CAMPUS<br><span class="text-[#adff2f]">SWAP</span></h1>
+                <p class="text-zinc-400 tracking-[0.3em] uppercase text-sm">The Student Streetwear Exchange</p>
+                <div class="pt-10">
+                    <button onclick="showPage('home-page')" class="bg-[#adff2f] text-black px-12 py-4 font-black hover:scale-110 transition-all">ENTER STORE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav id="main-nav" class="hidden sticky top-0 z-50 glass px-6 py-4 flex justify-between items-center">
+        <h1 onclick="showPage('home-page')" class="heading text-xl font-black cursor-pointer">C<span class="text-[#adff2f]">S</span></h1>
+        <div class="flex items-center space-x-6">
+            <i onclick="showPage('liked-page')" class="fa-regular fa-heart cursor-pointer hover:text-[#adff2f]"></i>
+            <i onclick="showPage('track-page')" class="fa-solid fa-truck-fast cursor-pointer hover:text-[#adff2f]"></i>
+            <i onclick="showPage('contact-page')" class="fa-solid fa-headset cursor-pointer hover:text-[#adff2f]" title="Contact Support"></i>
+            <i onclick="showPage('profile-page')" class="fa-regular fa-user cursor-pointer hover:text-[#adff2f]"></i>
+            <button onclick="showPage('login-page')" class="text-xs font-bold border border-zinc-700 px-4 py-1 rounded-full">LOGIN</button>
+        </div>
+    </nav>
+
+    <!-- HOME PAGE -->
+    <div id="home-page" class="page-section">
+        <div class="p-6">
+            <div class="h-[60vh] flex items-center justify-center bg-zinc-900 rounded-3xl mb-12 overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1200&q=80" class="absolute w-full h-full object-cover opacity-50">
+                <h2 class="relative heading text-4xl md:text-6xl text-center">NEW SEASON<br>DROPPED</h2>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="group">
+                    <div class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                        <img src="https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=500&q=80" class="w-full h-full object-cover group-hover:scale-105 transition">
+                    </div>
+                    <h3 class="font-bold">Oversized Graphic Tee</h3>
+                    <p class="text-[#adff2f]">$35</p>
+                </div>
+                <div class="group">
+                    <div class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                        <img src="https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=500&q=80" class="w-full h-full object-cover group-hover:scale-105 transition">
+                    </div>
+                    <h3 class="font-bold">Varsity Jacket</h3>
+                    <p class="text-[#adff2f]">$85</p>
+                </div>
+                <div class="group">
+                    <div class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=500&q=80" class="w-full h-full object-cover group-hover:scale-105 transition">
+                    </div>
+                    <h3 class="font-bold">Cargo Pants</h3>
+                    <p class="text-[#adff2f]">$45</p>
+                </div>
+                <div class="group">
+                    <div class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=500&q=80" class="w-full h-full object-cover group-hover:scale-105 transition">
+                    </div>
+                    <h3 class="font-bold">Designer Sneakers</h3>
+                    <p class="text-[#adff2f]">$120</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="page-section">
+        <div class="flex items-center justify-center p-6 min-h-screen">
+            <div class="glass p-10 rounded-3xl w-full max-w-md">
+                <div class="text-center mb-2">
+                    <h1 class="heading text-4xl mb-2">C<span class="text-[#adff2f]">S</span></h1>
+                    <p class="text-zinc-500 text-sm mb-8">CampusSwap Student Portal</p>
+                </div>
+                
+                <h2 class="heading text-2xl mb-8">WELCOME BACK</h2>
+                <div class="space-y-4">
+                    <input type="email" placeholder="Campus Email" class="w-full p-4 rounded-xl">
+                    <input type="password" placeholder="Password" class="w-full p-4 rounded-xl">
+                    <button onclick="loginUser()" class="w-full bg-white text-black py-4 rounded-xl font-bold hover:bg-opacity-90 transition">LOG IN</button>
+                    
+                    <div class="text-center pt-4">
+                        <p class="text-sm text-zinc-500">
+                            New here? 
+                            <span class="text-[#adff2f] cursor-pointer font-bold" onclick="showPage('signup-page')">
+                                Create account
+                            </span>
+                        </p>
+                        <p class="text-xs text-zinc-600 mt-4">
+                            Need help? 
+                            <span class="text-[#adff2f] cursor-pointer" onclick="showPage('contact-page')">
+                                Contact support
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIGNUP PAGE -->
+    <div id="signup-page" class="page-section">
+        <div class="flex items-center justify-center p-6 min-h-screen">
+            <div class="glass p-10 rounded-3xl w-full max-w-md">
+                <div class="text-center mb-2">
+                    <h1 class="heading text-4xl mb-2">C<span class="text-[#adff2f]">S</span></h1>
+                    <p class="text-zinc-500 text-sm mb-8">Join the student streetwear community</p>
+                </div>
+                
+                <h2 class="heading text-2xl mb-8">JOIN THE SQUAD</h2>
+                <div class="space-y-4">
+                    <input type="text" placeholder="Full Name" class="w-full p-4 rounded-xl">
+                    <input type="email" placeholder="University Email" class="w-full p-4 rounded-xl">
+                    <input type="password" placeholder="Create Password" class="w-full p-4 rounded-xl">
+                    <input type="password" placeholder="Confirm Password" class="w-full p-4 rounded-xl">
+                    
+                    <div class="flex items-start space-x-2 mt-2">
+                        <input type="checkbox" id="terms" class="mt-1">
+                        <label for="terms" class="text-xs text-zinc-400">
+                            I agree to CampusSwap's 
+                            <span class="text-[#adff2f] cursor-pointer" onclick="showTerms()">Terms of Service</span> 
+                            and 
+                            <span class="text-[#adff2f] cursor-pointer" onclick="showPrivacy()">Privacy Policy</span>
+                        </label>
+                    </div>
+                    
+                    <button onclick="signupUser()" class="w-full bg-[#adff2f] text-black py-4 rounded-xl font-bold hover:opacity-90 transition mt-4">CREATE ACCOUNT</button>
+                    
+                    <div class="text-center pt-4">
+                        <p class="text-sm text-zinc-500">
+                            Already have an account? 
+                            <span class="text-[#adff2f] cursor-pointer font-bold" onclick="showPage('login-page')">
+                                Log in here
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div id="profile-page" class="page-section">
+        <div class="p-6 max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+                <div class="flex items-center space-x-6 mb-6 md:mb-0">
+                    <div class="w-24 h-24 bg-[#adff2f] rounded-full flex items-center justify-center text-black text-3xl font-black">JD</div>
+                    <div>
+                        <h2 class="heading text-2xl">John Doe</h2>
+                        <p class="text-zinc-500">Student at State University</p>
+                        <p class="text-zinc-400 text-sm mt-1">Member since October 2023</p>
+                    </div>
+                </div>
+                <button onclick="showPage('contact-page')" class="glass px-6 py-3 rounded-xl flex items-center space-x-2 hover:bg-zinc-800 transition">
+                    <i class="fa-solid fa-headset"></i>
+                    <span>Contact Support</span>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold">Active Listings</h4>
+                        <span class="bg-[#adff2f] text-black text-xs font-bold px-3 py-1 rounded-full">0</span>
+                    </div>
+                    <p class="text-zinc-500 text-sm mb-4">You haven't listed any items for swap yet.</p>
+                    <button onclick="startSelling()" class="text-xs font-bold border border-zinc-700 px-4 py-2 rounded-full w-full hover:border-[#adff2f] transition">START SELLING</button>
+                </div>
+                
+                <div class="glass p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold">Recent Purchases</h4>
+                        <span class="bg-zinc-800 text-white text-xs font-bold px-3 py-1 rounded-full">2</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm font-bold">Vintage North Face Jacket</p>
+                                <p class="text-zinc-500 text-xs">Oct 15, 2023</p>
+                            </div>
+                            <span class="text-[#adff2f] font-bold">$120</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm font-bold">Graphic Hoodie</p>
+                                <p class="text-zinc-500 text-xs">Oct 10, 2023</p>
+                            </div>
+                            <span class="text-[#adff2f] font-bold">$65</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold">Account Settings</h4>
+                        <i class="fa-solid fa-gear text-zinc-500"></i>
+                    </div>
+                    <div class="space-y-3">
+                        <button onclick="editProfile()" class="w-full text-left text-sm p-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 transition">Edit Profile</button>
+                        <button onclick="paymentMethods()" class="w-full text-left text-sm p-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 transition">Payment Methods</button>
+                        <button onclick="notificationSettings()" class="w-full text-left text-sm p-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 transition">Notification Settings</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass p-6 rounded-2xl">
+                <h4 class="font-bold mb-4 border-b border-zinc-800 pb-3">Your Swap Stats</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center p-4">
+                        <p class="text-3xl font-bold text-[#adff2f]">12</p>
+                        <p class="text-zinc-500 text-sm">Items Viewed</p>
+                    </div>
+                    <div class="text-center p-4">
+                        <p class="text-3xl font-bold">5</p>
+                        <p class="text-zinc-500 text-sm">Items Liked</p>
+                    </div>
+                    <div class="text-center p-4">
+                        <p class="text-3xl font-bold">2</p>
+                        <p class="text-zinc-500 text-sm">Purchases</p>
+                    </div>
+                    <div class="text-center p-4">
+                        <p class="text-3xl font-bold">0</p>
+                        <p class="text-zinc-500 text-sm">Items Sold</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT PAGE -->
+    <div id="contact-page" class="page-section">
+        <div class="p-6 max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="heading text-4xl mb-4">CONTACT US</h2>
+                <p class="text-zinc-400 max-w-2xl mx-auto">Have questions, feedback, or need support? Get in touch with our team.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Contact Form -->
+                <div class="glass p-8 rounded-3xl">
+                    <h3 class="heading text-xl mb-6">SEND A MESSAGE</h3>
+                    <div class="space-y-4">
+                        <input type="text" placeholder="Your Name" class="w-full p-4 rounded-xl" id="contact-name">
+                        <input type="email" placeholder="Your Email" class="w-full p-4 rounded-xl" id="contact-email">
+                        <input type="text" placeholder="Subject" class="w-full p-4 rounded-xl" id="contact-subject">
+                        <textarea placeholder="Your Message" rows="4" class="w-full p-4 rounded-xl" id="contact-message"></textarea>
+                        <button onclick="sendContactMessage()" class="w-full bg-[#adff2f] text-black py-4 rounded-xl font-bold hover:opacity-90 transition">SEND MESSAGE</button>
+                    </div>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="glass p-8 rounded-3xl">
+                    <h3 class="heading text-xl mb-6">GET IN TOUCH</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4">
+                            <i class="fa-solid fa-envelope text-[#adff2f] text-xl mt-1"></i>
+                            <div>
+                                <p class="font-bold mb-1">Email</p>
+                                <p class="text-zinc-400 text-sm">lingamallujaya169@gmail.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <i class="fa-solid fa-clock text-[#adff2f] text-xl mt-1"></i>
+                            <div>
+                                <p class="font-bold mb-1">Response Time</p>
+                                <p class="text-zinc-400 text-sm">24-48 hours on weekdays</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <i class="fa-solid fa-circle-info text-[#adff2f] text-xl mt-1"></i>
+                            <div>
+                                <p class="font-bold mb-1">Support Hours</p>
+                                <p class="text-zinc-400 text-sm">Monday - Friday: 9AM - 6PM EST</p>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-zinc-800">
+                            <h4 class="font-bold mb-3">CampusSwap HQ</h4>
+                            <p class="text-zinc-400 text-sm">123 University Avenue<br>Suite 456<br>Campus City, CC 10027</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRACK PAGE -->
+    <div id="track-page" class="page-section">
+        <div class="p-6 max-w-2xl mx-auto">
+            <h2 class="heading text-2xl mb-8">TRACK SHIPMENT</h2>
+            <div class="glass p-8 rounded-3xl relative">
+                <div class="flex justify-between mb-10">
+                    <div class="text-center"><div class="w-4 h-4 bg-[#adff2f] rounded-full mx-auto mb-2"></div><p class="text-[10px] font-bold">ORDERED</p></div>
+                    <div class="text-center"><div class="w-4 h-4 bg-[#adff2f] rounded-full mx-auto mb-2 shadow-[0_0_10px_#adff2f]"></div><p class="text-[10px] font-bold text-[#adff2f]">SHIPPED</p></div>
+                    <div class="text-center"><div class="w-4 h-4 bg-zinc-700 rounded-full mx-auto mb-2"></div><p class="text-[10px] font-bold text-zinc-600">DELIVERED</p></div>
+                </div>
+                <div class="space-y-4">
+                    <p class="text-sm font-bold">Status: <span class="text-[#adff2f]">In Transit</span></p>
+                    <p class="text-xs text-zinc-400">Location: Distribution Center, New York</p>
+                    <p class="text-xs text-zinc-400">Estimated Delivery: Oct 24, 2023</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIKED PAGE -->
+    <div id="liked-page" class="page-section">
+        <div class="p-6">
+            <h2 class="heading text-2xl mb-8">YOUR WISHLIST</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="glass p-4 rounded-2xl relative">
+                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
+                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4"></div>
+                    <p class="font-bold text-sm">Baggy Denim Jeans</p>
+                    <p class="text-zinc-500 text-xs">$55.00</p>
+                    <button onclick="moveToBag('Baggy Denim Jeans')" class="w-full mt-4 bg-white text-black py-2 text-[10px] font-black uppercase">Move to Bag</button>
+                </div>
+                <div class="glass p-4 rounded-2xl relative">
+                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
+                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4"></div>
+                    <p class="font-bold text-sm">Leather Biker Jacket</p>
+                    <p class="text-zinc-500 text-xs">$95.00</p>
+                    <button onclick="moveToBag('Leather Biker Jacket')" class="w-full mt-4 bg-white text-black py-2 text-[10px] font-black uppercase">Move to Bag</button>
+                </div>
+                <div class="glass p-4 rounded-2xl relative">
+                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
+                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4"></div>
+                    <p class="font-bold text-sm">Retro Sunglasses</p>
+                    <p class="text-zinc-500 text-xs">$35.00</p>
+                    <button onclick="moveToBag('Retro Sunglasses')" class="w-full mt-4 bg-white text-black py-2 text-[10px] font-black uppercase">Move to Bag</button>
+                </div>
+                <div class="glass p-4 rounded-2xl relative">
+                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
+                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4"></div>
+                    <p class="font-bold text-sm">Designer Backpack</p>
+                    <p class="text-zinc-500 text-xs">$75.00</p>
+                    <button onclick="moveToBag('Designer Backpack')" class="w-full mt-4 bg-white text-black py-2 text-[10px] font-black uppercase">Move to Bag</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT -->
+    <script>
+        // Navigation Function
+        function showPage(pageId) {
+            console.log('Navigating to:', pageId);
+            
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(page => {
+                page.classList.remove('active-page');
+            });
+
+            // Show selected page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active-page');
+            } else {
+                console.error('Page not found:', pageId);
+                return;
+            }
+
+            // Show/hide navbar
+            const nav = document.getElementById('main-nav');
+            if (pageId === 'intro-page' || pageId === 'login-page' || pageId === 'signup-page') {
+                nav.classList.add('hidden');
+            } else {
+                nav.classList.remove('hidden');
+            }
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Login Page Functions
+        function loginUser() {
+            const email = document.querySelector('#login-page input[type="email"]').value;
+            const password = document.querySelector('#login-page input[type="password"]').value;
+            
+            if (!email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            // Simulate login
+            alert('Logging in...');
+            showPage('home-page');
+        }
+
+        // Signup Page Functions
+        function signupUser() {
+            const name = document.querySelector('#signup-page input[type="text"]').value;
+            const email = document.querySelectorAll('#signup-page input[type="email"]')[0].value;
+            const password = document.querySelectorAll('#signup-page input[type="password"]')[0].value;
+            const confirmPassword = document.querySelectorAll('#signup-page input[type="password"]')[1].value;
+            const terms = document.querySelector('#signup-page input[type="checkbox"]').checked;
+            
+            if (!name || !email || !password || !confirmPassword) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            if (!terms) {
+                alert('Please agree to the terms and conditions');
+                return;
+            }
+            
+            // Simulate signup
+            alert('Account created successfully!');
+            showPage('home-page');
+        }
+
+        function showTerms() {
+            alert('Terms of Service: This is a demo site. By using CampusSwap, you agree to our terms...');
+        }
+
+        function showPrivacy() {
+            alert('Privacy Policy: We value your privacy. Your data is secure with us...');
+        }
+
+        // Profile Page Functions
+        function startSelling() {
+            alert('Redirecting to listing creation page...');
+            // In a real app, this would show a form to list items
+        }
+
+        function editProfile() {
+            const newName = prompt('Enter new name:', 'John Doe');
+            if (newName) {
+                document.querySelector('#profile-page .heading.text-2xl').textContent = newName;
+                alert('Profile updated!');
+            }
+        }
+
+        function paymentMethods() {
+            alert('Payment methods page would open here');
+        }
+
+        function notificationSettings() {
+            alert('Notification settings page would open here');
+        }
+
+        // Contact Page Functions
+        function sendContactMessage() {
+            const name = document.getElementById('contact-name').value;
+            const email = document.getElementById('contact-email').value;
+            const subject = document.getElementById('contact-subject').value;
+            const message = document.getElementById('contact-message').value;
+            
+            if (!name || !email || !subject || !message) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            const mailtoLink = `mailto:lingamallujaya169@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
+            window.location.href = mailtoLink;
+            
+            // Clear form
+            document.getElementById('contact-name').value = '';
+            document.getElementById('contact-email').value = '';
+            document.getElementById('contact-subject').value = '';
+            document.getElementById('contact-message').value = '';
+        }
+
+        // Liked Page Functions
+        function moveToBag(itemName) {
+            alert(`Added "${itemName}" to your bag!`);
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('CampusSwap loaded successfully');
+            // Show intro page by default
+            showPage('intro-page');
+        });
+    </script>
+</body>
+</html>
