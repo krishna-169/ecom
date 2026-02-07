@@ -98,14 +98,15 @@
                 <input id="product-search" type="text" placeholder="Search products..."
                     class="bg-transparent border-0 text-sm w-48 focus:ring-0">
             </div>
+            <button id="sell-nav-btn" onclick="showPage('sell-page')"
+                class="hidden text-xs font-bold border border-zinc-700 px-4 py-1 rounded-full hover:border-[#adff2f]">SELL</button>
             <i onclick="showPage('cart-page')" class="fa-solid fa-bag-shopping cursor-pointer hover:text-[#adff2f]"
                 title="Cart"></i>
             <i onclick="showPage('liked-page')" class="fa-regular fa-heart cursor-pointer hover:text-[#adff2f]"></i>
-            <i onclick="showPage('track-page')" class="fa-solid fa-truck-fast cursor-pointer hover:text-[#adff2f]"></i>
             <i onclick="showPage('contact-page')" class="fa-solid fa-headset cursor-pointer hover:text-[#adff2f]"
                 title="Contact Support"></i>
             <i onclick="showPage('profile-page')" class="fa-regular fa-user cursor-pointer hover:text-[#adff2f]"></i>
-            <button onclick="showPage('login-page')"
+            <button id="login-nav-btn" onclick="showPage('login-page')"
                 class="text-xs font-bold border border-zinc-700 px-4 py-1 rounded-full">LOGIN</button>
         </div>
     </nav>
@@ -127,8 +128,11 @@
                 </div>
             </div>
             <div id="product-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="group" data-product="Oversized Graphic Tee" data-price="35"
-                    data-tags="tee graphic oversized">
+                <div class="group cursor-pointer" data-product="Oversized Graphic Tee" data-price="35"
+                    data-tags="tee graphic oversized"
+                    data-description="Relaxed-fit cotton tee with bold graphic print and drop shoulders." data-size="M"
+                    data-condition="New" data-color="Black" data-material="100% Cotton" data-location="Gudlavalleru"
+                    data-seller-phone="919888888888">
                     <div
                         class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                         <img src="https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=500&q=80"
@@ -137,7 +141,11 @@
                     <h3 class="font-bold">Oversized Graphic Tee</h3>
                     <p class="text-[#adff2f]">$35</p>
                 </div>
-                <div class="group" data-product="Varsity Jacket" data-price="85" data-tags="jacket varsity outerwear">
+                <div class="group cursor-pointer" data-product="Varsity Jacket" data-price="85"
+                    data-tags="jacket varsity outerwear"
+                    data-description="Classic varsity silhouette with ribbed cuffs and a soft brushed lining."
+                    data-size="L" data-condition="Like New" data-color="Navy" data-material="Wool Blend"
+                    data-location="Gudlavalleru" data-seller-phone="919888888888">
                     <div
                         class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                         <img src="https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=500&q=80"
@@ -146,7 +154,11 @@
                     <h3 class="font-bold">Varsity Jacket</h3>
                     <p class="text-[#adff2f]">$85</p>
                 </div>
-                <div class="group" data-product="Cargo Pants" data-price="45" data-tags="pants cargo bottoms">
+                <div class="group cursor-pointer" data-product="Cargo Pants" data-price="45"
+                    data-tags="pants cargo bottoms"
+                    data-description="Utility cargo pants with tapered fit and reinforced stitching." data-size="L"
+                    data-condition="New" data-color="Olive" data-material="Cotton Twill" data-location="Gudlavalleru"
+                    data-seller-phone="919888888888">
                     <div
                         class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                         <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=500&q=80"
@@ -155,8 +167,11 @@
                     <h3 class="font-bold">Cargo Pants</h3>
                     <p class="text-[#adff2f]">$45</p>
                 </div>
-                <div class="group" data-product="Designer Sneakers" data-price="120"
-                    data-tags="sneakers shoes footwear">
+                <div class="group cursor-pointer" data-product="Designer Sneakers" data-price="120"
+                    data-tags="sneakers shoes footwear"
+                    data-description="Premium sneakers with cushioned insole and breathable mesh." data-size="9"
+                    data-condition="New" data-color="White" data-material="Leather + Mesh" data-location="Gudlavalleru"
+                    data-seller-phone="919888888888">
                     <div
                         class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                         <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=500&q=80"
@@ -181,7 +196,8 @@
 
                 <h2 class="heading text-2xl mb-8">WELCOME BACK</h2>
                 <div class="space-y-4">
-                    <input type="email" placeholder="Campus Email" class="w-full p-4 rounded-xl">
+                    <input id="login-phone" type="tel" placeholder="Phone Number (e.g., +911234567890)"
+                        class="w-full p-4 rounded-xl" pattern="\+91[0-9]{10}" title="Enter +91 followed by 10 digits">
                     <input type="password" placeholder="Password" class="w-full p-4 rounded-xl">
                     <button onclick="loginUser()"
                         class="w-full bg-white text-black py-4 rounded-xl font-bold hover:bg-opacity-90 transition">LOG
@@ -218,7 +234,8 @@
                 <h2 class="heading text-2xl mb-8">JOIN THE SQUAD</h2>
                 <div class="space-y-4">
                     <input type="text" placeholder="Full Name" class="w-full p-4 rounded-xl">
-                    <input type="email" placeholder="University Email" class="w-full p-4 rounded-xl">
+                    <input id="signup-phone" type="tel" placeholder="Phone Number (e.g., +911234567890)"
+                        class="w-full p-4 rounded-xl" pattern="\+91[0-9]{10}" title="Enter +91 followed by 10 digits">
                     <input type="password" placeholder="Create Password" class="w-full p-4 rounded-xl">
                     <input type="password" placeholder="Confirm Password" class="w-full p-4 rounded-xl">
 
@@ -274,7 +291,8 @@
                 <div class="glass p-6 rounded-2xl">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="font-bold">Active Listings</h4>
-                        <span class="bg-[#adff2f] text-black text-xs font-bold px-3 py-1 rounded-full">0</span>
+                        <span id="active-listings-count"
+                            class="bg-[#adff2f] text-black text-xs font-bold px-3 py-1 rounded-full">0</span>
                     </div>
                     <p class="text-zinc-500 text-sm mb-4">You haven't listed any items for swap yet.</p>
                     <button onclick="startSelling()"
@@ -348,6 +366,43 @@
         </div>
     </div>
 
+    <!-- SELL PAGE -->
+    <div id="sell-page" class="page-section">
+        <div class="p-6 max-w-3xl mx-auto">
+            <div class="text-center mb-8">
+                <h2 class="heading text-3xl mb-3">SELL AN ITEM</h2>
+                <p class="text-zinc-400">Add product details so buyers can find and contact you fast.</p>
+            </div>
+            <div class="glass p-8 rounded-3xl">
+                <form id="sell-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input id="sell-name" type="text" placeholder="Product Name" class="w-full p-4 rounded-xl"
+                            required>
+                        <input id="sell-price" type="number" min="1" step="0.01" placeholder="Price (USD)"
+                            class="w-full p-4 rounded-xl" required>
+                        <input id="sell-tags" type="text" placeholder="Tags (tee, jacket, sneakers)"
+                            class="w-full p-4 rounded-xl">
+                        <input id="sell-size" type="text" placeholder="Size (M, L, 9)" class="w-full p-4 rounded-xl">
+                        <input id="sell-condition" type="text" placeholder="Condition (New, Like New, Used)"
+                            class="w-full p-4 rounded-xl">
+                        <input id="sell-color" type="text" placeholder="Color" class="w-full p-4 rounded-xl">
+                        <input id="sell-material" type="text" placeholder="Material" class="w-full p-4 rounded-xl">
+                        <input id="sell-location" type="text" placeholder="Location" class="w-full p-4 rounded-xl">
+                        <input id="sell-phone" type="tel" placeholder="Seller Phone (for call/WhatsApp)"
+                            class="w-full p-4 rounded-xl" required>
+                        <input id="sell-image" type="url" placeholder="Image URL (optional)"
+                            class="w-full p-4 rounded-xl">
+                    </div>
+                    <textarea id="sell-description" rows="4" placeholder="Product Description"
+                        class="w-full p-4 rounded-xl" required></textarea>
+                    <button type="submit"
+                        class="w-full bg-[#adff2f] text-black py-4 rounded-xl font-bold hover:opacity-90 transition">LIST
+                        ITEM</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- CONTACT PAGE -->
     <div id="contact-page" class="page-section">
         <div class="p-6 max-w-4xl mx-auto">
@@ -411,76 +466,12 @@
         </div>
     </div>
 
-    <!-- TRACK PAGE -->
-    <div id="track-page" class="page-section">
-        <div class="p-6 max-w-2xl mx-auto">
-            <h2 class="heading text-2xl mb-8">TRACK SHIPMENT</h2>
-            <div class="glass p-8 rounded-3xl relative">
-                <div class="flex justify-between mb-10">
-                    <div class="text-center">
-                        <div class="w-4 h-4 bg-[#adff2f] rounded-full mx-auto mb-2"></div>
-                        <p class="text-[10px] font-bold">ORDERED</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-4 h-4 bg-[#adff2f] rounded-full mx-auto mb-2 shadow-[0_0_10px_#adff2f]"></div>
-                        <p class="text-[10px] font-bold text-[#adff2f]">SHIPPED</p>
-                    </div>
-                    <div class="text-center">
-                        <div class="w-4 h-4 bg-zinc-700 rounded-full mx-auto mb-2"></div>
-                        <p class="text-[10px] font-bold text-zinc-600">DELIVERED</p>
-                    </div>
-                </div>
-                <div class="space-y-4">
-                    <p class="text-sm font-bold">Status: <span class="text-[#adff2f]">In Transit</span></p>
-                    <p class="text-xs text-zinc-400">Location: Distribution Center, New York</p>
-                    <p class="text-xs text-zinc-400">Estimated Delivery: Oct 24, 2023</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- LIKED PAGE -->
     <div id="liked-page" class="page-section">
         <div class="p-6">
             <h2 class="heading text-2xl mb-8">YOUR WISHLIST</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="glass p-4 rounded-2xl relative">
-                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
-                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4"></div>
-                    <p class="font-bold text-sm">Baggy Denim Jeans</p>
-                    <p class="text-zinc-500 text-xs">$55.00</p>
-                    <button onclick="moveToBag('Baggy Denim Jeans')"
-                        class="w-full mt-4 bg-white text-black py-2 text-[10px] font-black uppercase">Move to
-                        Bag</button>
-                </div>
-                <div class="glass p-4 rounded-2xl relative">
-                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
-                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4"></div>
-                    <p class="font-bold text-sm">Leather Biker Jacket</p>
-                    <p class="text-zinc-500 text-xs">$95.00</p>
-                    <button onclick="moveToBag('Leather Biker Jacket')"
-                        class="w-full mt-4 bg-white text-black py-2 text-[10px] font-black uppercase">Move to
-                        Bag</button>
-                </div>
-                <div class="glass p-4 rounded-2xl relative">
-                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
-                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4"></div>
-                    <p class="font-bold text-sm">Retro Sunglasses</p>
-                    <p class="text-zinc-500 text-xs">$35.00</p>
-                    <button onclick="moveToBag('Retro Sunglasses')"
-                        class="w-full mt-4 bg-white text-black py-2 text-[10px] font-black uppercase">Move to
-                        Bag</button>
-                </div>
-                <div class="glass p-4 rounded-2xl relative">
-                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
-                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4"></div>
-                    <p class="font-bold text-sm">Designer Backpack</p>
-                    <p class="text-zinc-500 text-xs">$75.00</p>
-                    <button onclick="moveToBag('Designer Backpack')"
-                        class="w-full mt-4 bg-white text-black py-2 text-[10px] font-black uppercase">Move to
-                        Bag</button>
-                </div>
-            </div>
+            <div id="liked-items" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+            <div id="liked-empty" class="text-center text-zinc-500 mt-6 hidden">No liked items yet.</div>
         </div>
     </div>
 
@@ -489,57 +480,16 @@
         <div class="p-6 max-w-4xl mx-auto">
             <div class="flex items-center justify-between mb-8">
                 <h2 class="heading text-2xl">YOUR CART</h2>
-                <span class="text-xs text-zinc-500">3 items</span>
+                <span id="cart-count" class="text-xs text-zinc-500">0 items</span>
             </div>
 
-            <div class="space-y-4">
-                <div class="glass p-4 rounded-2xl flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-16 h-20 bg-zinc-800 rounded-lg"></div>
-                        <div>
-                            <p class="font-bold">Oversized Graphic Tee</p>
-                            <p class="text-xs text-zinc-500">Size M</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[#adff2f] font-bold">$35</p>
-                        <button class="text-xs text-zinc-400 hover:text-white">Remove</button>
-                    </div>
-                </div>
-
-                <div class="glass p-4 rounded-2xl flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-16 h-20 bg-zinc-800 rounded-lg"></div>
-                        <div>
-                            <p class="font-bold">Cargo Pants</p>
-                            <p class="text-xs text-zinc-500">Size L</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[#adff2f] font-bold">$45</p>
-                        <button class="text-xs text-zinc-400 hover:text-white">Remove</button>
-                    </div>
-                </div>
-
-                <div class="glass p-4 rounded-2xl flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-16 h-20 bg-zinc-800 rounded-lg"></div>
-                        <div>
-                            <p class="font-bold">Designer Sneakers</p>
-                            <p class="text-xs text-zinc-500">Size 9</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[#adff2f] font-bold">$120</p>
-                        <button class="text-xs text-zinc-400 hover:text-white">Remove</button>
-                    </div>
-                </div>
-            </div>
+            <div id="cart-items" class="space-y-4"></div>
+            <div id="cart-empty" class="text-center text-zinc-500 mt-6 hidden">Your cart is empty.</div>
 
             <div class="glass p-6 rounded-2xl mt-8">
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-sm text-zinc-400">Subtotal</p>
-                    <p class="font-bold">$200</p>
+                    <p id="cart-subtotal" class="font-bold">$0</p>
                 </div>
                 <div class="flex items-center justify-between mb-4">
                     <p class="text-sm text-zinc-400">Shipping</p>
@@ -547,9 +497,100 @@
                 </div>
                 <div class="flex items-center justify-between border-t border-zinc-800 pt-4">
                     <p class="text-sm text-zinc-400">Total</p>
-                    <p class="text-[#adff2f] text-xl font-bold">$200</p>
+                    <p id="cart-total" class="text-[#adff2f] text-xl font-bold">$0</p>
                 </div>
-                <button class="w-full mt-6 bg-[#adff2f] text-black py-3 rounded-xl font-bold">CHECKOUT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCT DETAILS MODAL -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div id="product-modal-backdrop" class="absolute inset-0 bg-black/70"></div>
+        <div class="relative z-10 w-[92%] max-w-3xl glass rounded-3xl overflow-hidden border border-zinc-800">
+            <button id="product-modal-close"
+                class="absolute top-4 right-4 w-9 h-9 rounded-full bg-zinc-900 text-white hover:text-[#adff2f]">&times;</button>
+            <button id="product-modal-like" title="Add to wishlist"
+                class="absolute top-4 right-16 w-9 h-9 rounded-full bg-zinc-900 text-white hover:text-red-500">
+                <i class="fa-solid fa-heart"></i>
+            </button>
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <div class="bg-zinc-900">
+                    <img id="product-modal-image" src="" alt=""
+                        class="w-full h-full object-cover aspect-[4/5] md:aspect-auto">
+                </div>
+                <div class="p-8 space-y-4">
+                    <div>
+                        <h3 id="product-modal-name" class="heading text-2xl"></h3>
+                        <p id="product-modal-price" class="text-[#adff2f] text-xl font-bold"></p>
+                    </div>
+                    <p id="product-modal-description" class="text-zinc-400 text-sm"></p>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <p class="text-zinc-500">Size</p>
+                            <p id="product-modal-size" class="text-zinc-200 font-bold"></p>
+                        </div>
+                        <div>
+                            <p class="text-zinc-500">Condition</p>
+                            <p id="product-modal-condition" class="text-zinc-200 font-bold"></p>
+                        </div>
+                        <div>
+                            <p class="text-zinc-500">Color</p>
+                            <p id="product-modal-color" class="text-zinc-200 font-bold"></p>
+                        </div>
+                        <div>
+                            <p class="text-zinc-500">Material</p>
+                            <p id="product-modal-material" class="text-zinc-200 font-bold"></p>
+                        </div>
+                        <div>
+                            <p class="text-zinc-500">Location</p>
+                            <p id="product-modal-location" class="text-zinc-200 font-bold"></p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-3 pt-2">
+                        <button id="product-modal-tryon"
+                            class="w-full border border-zinc-700 py-3 rounded-xl font-bold hover:border-[#adff2f]">VIRTUAL
+                            TRY-ON</button>
+                        <button id="product-modal-add"
+                            class="w-full bg-[#adff2f] text-black py-3 rounded-xl font-bold">ADD TO CART</button>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <a id="product-modal-call" href="tel:"
+                                class="w-full text-center border border-zinc-700 py-3 rounded-xl font-bold hover:border-[#adff2f]">CALL
+                                SELLER</a>
+                            <a id="product-modal-whatsapp" href="" target="_blank" rel="noopener"
+                                class="w-full text-center border border-zinc-700 py-3 rounded-xl font-bold hover:border-[#adff2f]">WHATSAPP
+                                SELLER</a>
+                        </div>
+                    </div>
+                    <p class="text-xs text-zinc-500">Need a different size? Message the seller for availability.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIRTUAL TRY-ON MODAL -->
+    <div id="tryon-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div id="tryon-modal-backdrop" class="absolute inset-0 bg-black/80"></div>
+        <div class="relative z-10 w-[92%] max-w-3xl glass rounded-3xl overflow-hidden border border-zinc-800">
+            <button id="tryon-modal-close"
+                class="absolute top-4 right-4 w-9 h-9 rounded-full bg-zinc-900 text-white hover:text-[#adff2f]">&times;</button>
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <div class="bg-zinc-900">
+                    <img id="tryon-modal-image" src="" alt=""
+                        class="w-full h-full object-cover aspect-[4/5] md:aspect-auto">
+                </div>
+                <div class="p-8 space-y-4">
+                    <h3 class="heading text-2xl">Virtual Try-On</h3>
+                    <p id="tryon-modal-name" class="text-zinc-300 text-sm"></p>
+                    <p class="text-zinc-400 text-sm">
+                        This is a demo try-on view. In a real platform, camera or avatar-based fitting would appear
+                        here.
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <button id="tryon-modal-use"
+                            class="w-full bg-[#adff2f] text-black py-3 rounded-xl font-bold">START TRY-ON</button>
+                    </div>
+                    <p class="text-xs text-zinc-500">Tip: Upload a clear front photo for best results.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -597,6 +638,11 @@
 
     <!-- MAIN SCRIPT -->
     <script>
+        let isLoggedIn = false;
+        let listingsCount = 0;
+        const cartItems = [];
+        const likedItems = [];
+
         // Navigation Function
         function showPage(pageId) {
             console.log('Navigating to:', pageId);
@@ -629,29 +675,41 @@
 
         // Login Page Functions
         function loginUser() {
-            const email = document.querySelector('#login-page input[type="email"]').value;
+            const phone = document.getElementById('login-phone').value.trim();
             const password = document.querySelector('#login-page input[type="password"]').value;
 
-            if (!email || !password) {
+            if (!phone || !password) {
                 alert('Please fill in all fields');
+                return;
+            }
+
+            if (!isValidPhone(phone)) {
+                alert('Please enter a valid phone number in the format +91XXXXXXXXXX.');
                 return;
             }
 
             // Simulate login
             alert('Logging in...');
+            isLoggedIn = true;
+            updateAuthUI();
             showPage('home-page');
         }
 
         // Signup Page Functions
         function signupUser() {
             const name = document.querySelector('#signup-page input[type="text"]').value;
-            const email = document.querySelectorAll('#signup-page input[type="email"]')[0].value;
+            const phone = document.getElementById('signup-phone').value.trim();
             const password = document.querySelectorAll('#signup-page input[type="password"]')[0].value;
             const confirmPassword = document.querySelectorAll('#signup-page input[type="password"]')[1].value;
             const terms = document.querySelector('#signup-page input[type="checkbox"]').checked;
 
-            if (!name || !email || !password || !confirmPassword) {
+            if (!name || !phone || !password || !confirmPassword) {
                 alert('Please fill in all fields');
+                return;
+            }
+
+            if (!isValidPhone(phone)) {
+                alert('Please enter a valid phone number in the format +91XXXXXXXXXX.');
                 return;
             }
 
@@ -667,6 +725,8 @@
 
             // Simulate signup
             alert('Account created successfully!');
+            isLoggedIn = true;
+            updateAuthUI();
             showPage('home-page');
         }
 
@@ -678,10 +738,18 @@
             alert('Privacy Policy: We value your privacy. Your data is secure with us...');
         }
 
+        function isValidPhone(phone) {
+            return /^\+91\d{10}$/.test(phone.trim());
+        }
+
         // Profile Page Functions
         function startSelling() {
-            alert('Redirecting to listing creation page...');
-            // In a real app, this would show a form to list items
+            if (!isLoggedIn) {
+                alert('Please log in or sign up to sell an item.');
+                showPage('login-page');
+                return;
+            }
+            showPage('sell-page');
         }
 
         function editProfile() {
@@ -725,6 +793,524 @@
         // Liked Page Functions
         function moveToBag(itemName) {
             alert(`Added "${itemName}" to your bag!`);
+        }
+
+        function addToWishlist(item) {
+            if (!item || !item.name) return false;
+            const exists = likedItems.some(
+                entry => entry.name === item.name && entry.size === item.size
+            );
+            if (exists) {
+                return false;
+            }
+            likedItems.unshift({ ...item, id: `${item.name}-${Date.now()}` });
+            renderWishlist();
+            return true;
+        }
+
+        function removeFromWishlist(name, size) {
+            const index = likedItems.findIndex(
+                entry => entry.name === name && entry.size === size
+            );
+            if (index === -1) return false;
+            likedItems.splice(index, 1);
+            renderWishlist();
+            return true;
+        }
+
+        function isItemLiked(name, size) {
+            return likedItems.some(entry => entry.name === name && entry.size === size);
+        }
+
+        // Product Details Modal
+        function openProductModal(card) {
+            if (!card) return;
+
+            const modal = document.getElementById('product-modal');
+            const image = card.querySelector('img');
+            const name = card.dataset.product || 'Product';
+            const price = card.dataset.price || '';
+            const description = card.dataset.description || 'Details coming soon.';
+            const size = card.dataset.size || '—';
+            const condition = card.dataset.condition || '—';
+            const color = card.dataset.color || '—';
+            const material = card.dataset.material || '—';
+            const location = card.dataset.location || '—';
+            const sellerPhone = (card.dataset.sellerPhone || '').trim();
+
+            const modalImage = document.getElementById('product-modal-image');
+            const modalName = document.getElementById('product-modal-name');
+            const modalPrice = document.getElementById('product-modal-price');
+            const modalDescription = document.getElementById('product-modal-description');
+            const modalSize = document.getElementById('product-modal-size');
+            const modalCondition = document.getElementById('product-modal-condition');
+            const modalColor = document.getElementById('product-modal-color');
+            const modalMaterial = document.getElementById('product-modal-material');
+            const modalLocation = document.getElementById('product-modal-location');
+            const callLink = document.getElementById('product-modal-call');
+            const whatsappLink = document.getElementById('product-modal-whatsapp');
+
+            if (modalImage && image) {
+                modalImage.src = image.src;
+                modalImage.alt = image.alt || name;
+            }
+            if (modalName) modalName.textContent = name;
+            if (modalPrice) modalPrice.textContent = price ? `$${price}` : '';
+            if (modalDescription) modalDescription.textContent = description;
+            if (modalSize) modalSize.textContent = size;
+            if (modalCondition) modalCondition.textContent = condition;
+            if (modalColor) modalColor.textContent = color;
+            if (modalMaterial) modalMaterial.textContent = material;
+            if (modalLocation) modalLocation.textContent = location;
+
+            const safePhone = sellerPhone.replace(/\D/g, '');
+            if (callLink) callLink.href = safePhone ? `tel:${safePhone}` : 'tel:';
+            if (whatsappLink) {
+                const text = encodeURIComponent(`Hi, I'm interested in ${name}. Is it still available?`);
+                whatsappLink.href = safePhone ? `https://wa.me/${safePhone}?text=${text}` : '#';
+            }
+
+            if (modal) {
+                modal.dataset.product = name;
+                modal.dataset.price = price;
+                modal.dataset.size = size;
+                modal.dataset.image = image ? image.src : '';
+                modal.dataset.description = description;
+                modal.dataset.condition = condition;
+                modal.dataset.color = color;
+                modal.dataset.material = material;
+                modal.dataset.location = location;
+                modal.dataset.sellerPhone = sellerPhone;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            const likeBtn = document.getElementById('product-modal-like');
+            if (likeBtn) {
+                likeBtn.classList.toggle('text-red-500', isItemLiked(name, size));
+                likeBtn.classList.toggle('text-white', !isItemLiked(name, size));
+            }
+        }
+
+        function closeProductModal() {
+            const modal = document.getElementById('product-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function addToCart(itemName) {
+            if (!itemName) return;
+            const modal = document.getElementById('product-modal');
+            const priceValue = modal ? modal.dataset.price : '';
+            const sizeValue = modal ? modal.dataset.size : '';
+            const imageValue = modal ? modal.dataset.image : '';
+            const descriptionValue = modal ? modal.dataset.description : '';
+            const conditionValue = modal ? modal.dataset.condition : '';
+            const colorValue = modal ? modal.dataset.color : '';
+            const materialValue = modal ? modal.dataset.material : '';
+            const locationValue = modal ? modal.dataset.location : '';
+            const sellerPhoneValue = modal ? modal.dataset.sellerPhone : '';
+            const price = parseFloat(priceValue || '0');
+
+            const existing = cartItems.find(
+                item => item.name === itemName && item.size === (sizeValue || '—')
+            );
+
+            if (existing) {
+                existing.quantity += 1;
+                renderCart();
+                closeProductModal();
+                return;
+            }
+
+            cartItems.push({
+                id: `${itemName}-${Date.now()}`,
+                name: itemName,
+                price: Number.isFinite(price) ? price : 0,
+                size: sizeValue || '—',
+                image: imageValue || '',
+                quantity: 1,
+                description: descriptionValue || 'Details coming soon.',
+                condition: conditionValue || '—',
+                color: colorValue || '—',
+                material: materialValue || '—',
+                location: locationValue || '—',
+                sellerPhone: sellerPhoneValue || ''
+            });
+
+            renderCart();
+            closeProductModal();
+        }
+
+        function addToCartFromItem(item) {
+            if (!item || !item.name) return;
+            const existing = cartItems.find(
+                entry => entry.name === item.name && entry.size === item.size
+            );
+
+            if (existing) {
+                existing.quantity += 1;
+                renderCart();
+                return;
+            }
+
+            cartItems.push({
+                id: `${item.name}-${Date.now()}`,
+                name: item.name,
+                price: Number.isFinite(item.price) ? item.price : 0,
+                size: item.size || '—',
+                image: item.image || '',
+                quantity: 1,
+                description: item.description || 'Details coming soon.',
+                condition: item.condition || '—',
+                color: item.color || '—',
+                material: item.material || '—',
+                location: item.location || '—',
+                sellerPhone: item.sellerPhone || ''
+            });
+
+            renderCart();
+        }
+
+        function formatMoney(value) {
+            return `$${Number(value || 0).toFixed(2).replace(/\.00$/, '')}`;
+        }
+
+        function buildWhatsappLink(phone, productName, price, size, shopName) {
+            const safePhone = (phone || '').replace(/\D/g, '');
+            if (!safePhone) return '';
+            const shopLabel = shopName ? ` via ${shopName}` : '';
+            const priceLabel = price ? `Price: ${price}. ` : '';
+            const sizeLabel = size ? `Size: ${size}. ` : '';
+            const text = encodeURIComponent(
+                `Hi, I'm interested in ${productName || 'this item'}${shopLabel}. ${priceLabel}${sizeLabel}Is it still available?`
+            );
+            return `https://wa.me/${safePhone}?text=${text}`;
+        }
+
+        function handleCallSellerClick(event) {
+            event.preventDefault();
+            const modal = document.getElementById('product-modal');
+            const phone = modal ? modal.dataset.sellerPhone : '';
+            const safePhone = (phone || '').replace(/\D/g, '');
+            if (!safePhone) {
+                alert('Seller phone number is not available.');
+                return;
+            }
+            window.location.href = `tel:${safePhone}`;
+        }
+
+        function handleWhatsappSellerClick(event) {
+            event.preventDefault();
+            const modal = document.getElementById('product-modal');
+            const phone = modal ? modal.dataset.sellerPhone : '';
+            const name = modal ? modal.dataset.product : '';
+            const price = modal ? modal.dataset.price : '';
+            const size = modal ? modal.dataset.size : '';
+            const link = buildWhatsappLink(phone, name, price, size, 'CampusSwap');
+            if (!link) {
+                alert('Seller WhatsApp number is not available.');
+                return;
+            }
+            window.open(link, '_blank', 'noopener');
+        }
+
+        function openCartItemDetails(item) {
+            if (!item) return;
+            const modal = document.getElementById('product-modal');
+            const modalImage = document.getElementById('product-modal-image');
+            const modalName = document.getElementById('product-modal-name');
+            const modalPrice = document.getElementById('product-modal-price');
+            const modalDescription = document.getElementById('product-modal-description');
+            const modalSize = document.getElementById('product-modal-size');
+            const modalCondition = document.getElementById('product-modal-condition');
+            const modalColor = document.getElementById('product-modal-color');
+            const modalMaterial = document.getElementById('product-modal-material');
+            const modalLocation = document.getElementById('product-modal-location');
+            const callLink = document.getElementById('product-modal-call');
+            const whatsappLink = document.getElementById('product-modal-whatsapp');
+
+            if (modalImage) {
+                modalImage.src = item.image || '';
+                modalImage.alt = item.name || 'Product';
+            }
+            if (modalName) modalName.textContent = item.name || 'Product';
+            if (modalPrice) modalPrice.textContent = formatMoney(item.price);
+            if (modalDescription) modalDescription.textContent = item.description || 'Details coming soon.';
+            if (modalSize) modalSize.textContent = item.size || '—';
+            if (modalCondition) modalCondition.textContent = item.condition || '—';
+            if (modalColor) modalColor.textContent = item.color || '—';
+            if (modalMaterial) modalMaterial.textContent = item.material || '—';
+            if (modalLocation) modalLocation.textContent = item.location || '—';
+
+            const safePhone = (item.sellerPhone || '').replace(/\D/g, '');
+            if (callLink) callLink.href = safePhone ? `tel:${safePhone}` : 'tel:';
+            if (whatsappLink) {
+                const text = encodeURIComponent(`Hi, I'm interested in ${item.name}. Is it still available?`);
+                whatsappLink.href = safePhone ? `https://wa.me/${safePhone}?text=${text}` : '#';
+            }
+
+            if (modal) {
+                modal.dataset.product = item.name || 'Product';
+                modal.dataset.price = String(item.price || '');
+                modal.dataset.size = item.size || '—';
+                modal.dataset.image = item.image || '';
+                modal.dataset.description = item.description || '';
+                modal.dataset.condition = item.condition || '';
+                modal.dataset.color = item.color || '';
+                modal.dataset.material = item.material || '';
+                modal.dataset.location = item.location || '';
+                modal.dataset.sellerPhone = item.sellerPhone || '';
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function renderCart() {
+            const itemsContainer = document.getElementById('cart-items');
+            const emptyState = document.getElementById('cart-empty');
+            const count = document.getElementById('cart-count');
+            const subtotalEl = document.getElementById('cart-subtotal');
+            const totalEl = document.getElementById('cart-total');
+
+            if (!itemsContainer) return;
+
+            itemsContainer.innerHTML = '';
+
+            if (emptyState) emptyState.classList.toggle('hidden', cartItems.length > 0);
+            const totalQty = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+            if (count) count.textContent = `${totalQty} item${totalQty === 1 ? '' : 's'}`;
+
+            let subtotal = 0;
+
+            cartItems.forEach((item) => {
+                subtotal += item.price * (item.quantity || 0);
+                const card = document.createElement('div');
+                card.className = 'glass p-4 rounded-2xl flex items-center justify-between';
+                card.dataset.cartId = item.id;
+                card.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-20 bg-zinc-800 rounded-lg overflow-hidden">
+                            ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">` : ''}
+                        </div>
+                        <div>
+                            <p class="font-bold">${item.name}</p>
+                            <p class="text-xs text-zinc-500">Size ${item.size || '—'}</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <button class="w-6 h-6 rounded-full border border-zinc-700 text-xs hover:border-[#adff2f]" data-qty-minus="${item.id}">-</button>
+                                <span class="text-xs text-zinc-300" data-qty-value="${item.id}">${item.quantity}</span>
+                                <button class="w-6 h-6 rounded-full border border-zinc-700 text-xs hover:border-[#adff2f]" data-qty-plus="${item.id}">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[#adff2f] font-bold">${formatMoney(item.price)}</p>
+                        <p class="text-xs text-zinc-500">Line: ${formatMoney(item.price * (item.quantity || 0))}</p>
+                        <button class="text-xs text-zinc-400 hover:text-white" data-remove-id="${item.id}">Remove</button>
+                    </div>
+                `;
+                itemsContainer.appendChild(card);
+            });
+
+            if (subtotalEl) subtotalEl.textContent = formatMoney(subtotal);
+            if (totalEl) totalEl.textContent = formatMoney(subtotal);
+
+            itemsContainer.querySelectorAll('[data-remove-id]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-remove-id');
+                    const index = cartItems.findIndex(item => item.id === id);
+                    if (index !== -1) cartItems.splice(index, 1);
+                    renderCart();
+                });
+            });
+
+            itemsContainer.querySelectorAll('[data-qty-minus]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-qty-minus');
+                    const item = cartItems.find(entry => entry.id === id);
+                    if (!item) return;
+                    item.quantity = (item.quantity || 1) - 1;
+                    if (item.quantity <= 0) {
+                        const index = cartItems.findIndex(entry => entry.id === id);
+                        if (index !== -1) cartItems.splice(index, 1);
+                    }
+                    renderCart();
+                });
+            });
+
+            itemsContainer.querySelectorAll('[data-qty-plus]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-qty-plus');
+                    const item = cartItems.find(entry => entry.id === id);
+                    if (!item) return;
+                    item.quantity = (item.quantity || 1) + 1;
+                    renderCart();
+                });
+            });
+
+            itemsContainer.querySelectorAll('[data-cart-id]').forEach((card) => {
+                card.addEventListener('click', (event) => {
+                    if (event.target.closest('button')) return;
+                    const id = card.getAttribute('data-cart-id');
+                    const item = cartItems.find(entry => entry.id === id);
+                    if (!item) return;
+                    openCartItemDetails(item);
+                });
+            });
+        }
+
+        function renderWishlist() {
+            const container = document.getElementById('liked-items');
+            const emptyState = document.getElementById('liked-empty');
+            if (!container) return;
+
+            container.innerHTML = '';
+            if (emptyState) emptyState.classList.toggle('hidden', likedItems.length > 0);
+
+            likedItems.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'glass p-4 rounded-2xl relative';
+                card.innerHTML = `
+                    <i class="fa-solid fa-heart absolute top-6 right-6 text-red-500"></i>
+                    <div class="aspect-square bg-zinc-800 rounded-lg mb-4 overflow-hidden">
+                        ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">` : ''}
+                    </div>
+                    <p class="font-bold text-sm">${item.name}</p>
+                    <p class="text-zinc-500 text-xs">${formatMoney(item.price)}</p>
+                    <div class="mt-4 space-y-2">
+                        <button class="w-full bg-white text-black py-2 text-[10px] font-black uppercase" data-wish-add="${item.id}">
+                            Move to Bag
+                        </button>
+                        <button class="w-full border border-zinc-700 py-2 text-[10px] font-black uppercase hover:border-[#adff2f]" data-wish-remove="${item.id}">
+                            Remove
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            container.querySelectorAll('[data-wish-add]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-wish-add');
+                    const item = likedItems.find(entry => entry.id === id);
+                    if (!item) return;
+                    addToCartFromItem(item);
+                    showPage('cart-page');
+                });
+            });
+
+            container.querySelectorAll('[data-wish-remove]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-wish-remove');
+                    const index = likedItems.findIndex(entry => entry.id === id);
+                    if (index !== -1) likedItems.splice(index, 1);
+                    renderWishlist();
+                });
+            });
+        }
+
+        function updateAuthUI() {
+            const sellBtn = document.getElementById('sell-nav-btn');
+            const loginBtn = document.getElementById('login-nav-btn');
+            if (sellBtn) sellBtn.classList.toggle('hidden', !isLoggedIn);
+            if (loginBtn) loginBtn.classList.toggle('hidden', isLoggedIn);
+        }
+
+        function updateListingsCount() {
+            const count = document.getElementById('active-listings-count');
+            if (count) count.textContent = String(listingsCount);
+        }
+
+        function handleSellSubmit(event) {
+            event.preventDefault();
+            if (!isLoggedIn) {
+                alert('Please log in or sign up to sell an item.');
+                showPage('login-page');
+                return;
+            }
+
+            const name = document.getElementById('sell-name').value.trim();
+            const priceRaw = document.getElementById('sell-price').value.trim();
+            const tags = document.getElementById('sell-tags').value.trim();
+            const size = document.getElementById('sell-size').value.trim();
+            const condition = document.getElementById('sell-condition').value.trim();
+            const color = document.getElementById('sell-color').value.trim();
+            const material = document.getElementById('sell-material').value.trim();
+            const location = document.getElementById('sell-location').value.trim();
+            const phone = document.getElementById('sell-phone').value.trim();
+            const imageUrl = document.getElementById('sell-image').value.trim();
+            const description = document.getElementById('sell-description').value.trim();
+
+            if (!name || !priceRaw || !phone || !description) {
+                alert('Please fill in the required fields.');
+                return;
+            }
+
+            const price = parseFloat(priceRaw);
+            const safePrice = Number.isFinite(price) ? price.toFixed(2).replace(/\.00$/, '') : priceRaw;
+            const placeholderImage =
+                'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80';
+            const grid = document.getElementById('product-grid');
+
+            if (!grid) return;
+
+            const card = document.createElement('div');
+            card.className = 'group cursor-pointer';
+            card.dataset.product = name;
+            card.dataset.price = String(safePrice);
+            card.dataset.tags = tags || name.toLowerCase();
+            card.dataset.description = description;
+            card.dataset.size = size || '—';
+            card.dataset.condition = condition || '—';
+            card.dataset.color = color || '—';
+            card.dataset.material = material || '—';
+            card.dataset.location = location || '—';
+            card.dataset.sellerPhone = phone;
+
+            const image = imageUrl || placeholderImage;
+            card.innerHTML = `
+                <div class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                    <img src="${image}" class="w-full h-full object-cover group-hover:scale-105 transition" alt="${name}">
+                </div>
+                <h3 class="font-bold">${name}</h3>
+                <p class="text-[#adff2f]">$${safePrice}</p>
+            `;
+
+            grid.prepend(card);
+            listingsCount += 1;
+            updateListingsCount();
+            event.target.reset();
+            alert('Item listed successfully!');
+            showPage('home-page');
+        }
+
+        function openTryOnModal() {
+            const productModal = document.getElementById('product-modal');
+            const tryonModal = document.getElementById('tryon-modal');
+            const tryonImage = document.getElementById('tryon-modal-image');
+            const tryonName = document.getElementById('tryon-modal-name');
+
+            if (!tryonModal) return;
+
+            const productName = productModal ? productModal.dataset.product : 'This product';
+            const productImage = document.getElementById('product-modal-image');
+
+            if (tryonName) tryonName.textContent = productName;
+            if (tryonImage && productImage) {
+                tryonImage.src = productImage.src;
+                tryonImage.alt = productName;
+            }
+
+            tryonModal.classList.remove('hidden');
+            tryonModal.classList.add('flex');
+        }
+
+        function closeTryOnModal() {
+            const tryonModal = document.getElementById('tryon-modal');
+            if (!tryonModal) return;
+            tryonModal.classList.add('hidden');
+            tryonModal.classList.remove('flex');
         }
 
         // Search + Chatbot
@@ -918,6 +1504,11 @@
             // Show intro page by default
             showPage('intro-page');
 
+            updateAuthUI();
+            updateListingsCount();
+            renderCart();
+            renderWishlist();
+
             const searchInput = document.getElementById('product-search');
             const searchMobile = document.getElementById('product-search-mobile');
             if (searchInput) {
@@ -953,6 +1544,83 @@
                     if (e.key === 'Enter') handleChatSend();
                 });
             }
+
+            const sellForm = document.getElementById('sell-form');
+            if (sellForm) sellForm.addEventListener('submit', handleSellSubmit);
+
+            const productGrid = document.getElementById('product-grid');
+            if (productGrid) {
+                productGrid.addEventListener('click', (event) => {
+                    const card = event.target.closest('.group');
+                    if (!card || !productGrid.contains(card)) return;
+                    openProductModal(card);
+                });
+            }
+
+            const modalClose = document.getElementById('product-modal-close');
+            const modalBackdrop = document.getElementById('product-modal-backdrop');
+            const modalAdd = document.getElementById('product-modal-add');
+            const modalTryOn = document.getElementById('product-modal-tryon');
+            const modalCall = document.getElementById('product-modal-call');
+            const modalWhatsapp = document.getElementById('product-modal-whatsapp');
+            const modalLike = document.getElementById('product-modal-like');
+            if (modalClose) modalClose.addEventListener('click', closeProductModal);
+            if (modalBackdrop) modalBackdrop.addEventListener('click', closeProductModal);
+            if (modalAdd) {
+                modalAdd.addEventListener('click', () => {
+                    const modal = document.getElementById('product-modal');
+                    const name = modal ? modal.dataset.product : '';
+                    addToCart(name);
+                });
+            }
+            if (modalTryOn) modalTryOn.addEventListener('click', openTryOnModal);
+            if (modalCall) modalCall.addEventListener('click', handleCallSellerClick);
+            if (modalWhatsapp) modalWhatsapp.addEventListener('click', handleWhatsappSellerClick);
+            if (modalLike) {
+                modalLike.addEventListener('click', () => {
+                    const modal = document.getElementById('product-modal');
+                    if (!modal) return;
+                    const name = modal.dataset.product || 'Product';
+                    const size = modal.dataset.size || '—';
+                    if (isItemLiked(name, size)) {
+                        removeFromWishlist(name, size);
+                        modalLike.classList.remove('text-red-500');
+                        modalLike.classList.add('text-white');
+                        return;
+                    }
+
+                    addToWishlist({
+                        name,
+                        price: parseFloat(modal.dataset.price || '0'),
+                        size,
+                        image: modal.dataset.image || '',
+                        description: modal.dataset.description || 'Details coming soon.',
+                        condition: modal.dataset.condition || '—',
+                        color: modal.dataset.color || '—',
+                        material: modal.dataset.material || '—',
+                        location: modal.dataset.location || '—',
+                        sellerPhone: modal.dataset.sellerPhone || ''
+                    });
+                    modalLike.classList.add('text-red-500');
+                    modalLike.classList.remove('text-white');
+                });
+            }
+
+            const tryonClose = document.getElementById('tryon-modal-close');
+            const tryonBackdrop = document.getElementById('tryon-modal-backdrop');
+            const tryonUse = document.getElementById('tryon-modal-use');
+            if (tryonClose) tryonClose.addEventListener('click', closeTryOnModal);
+            if (tryonBackdrop) tryonBackdrop.addEventListener('click', closeTryOnModal);
+            if (tryonUse) tryonUse.addEventListener('click', () => {
+                alert('Virtual try-on is a demo in this version.');
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeTryOnModal();
+                    closeProductModal();
+                }
+            });
 
             setupVoiceSearch();
         });
