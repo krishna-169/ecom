@@ -7,6 +7,9 @@
     <title>CampusSwap | Elevate Your Fit</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@300;400;600;800&display=swap');
 
@@ -67,6 +70,34 @@
             border-color: var(--neon) !important;
             outline: none;
         }
+
+        select {
+            background: #111 !important;
+            border: 1px solid #333 !important;
+            color: white !important;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        select:focus {
+            border-color: var(--neon) !important;
+            outline: none;
+        }
+
+        option {
+            background: #111;
+            color: white;
+        }
+
+        .tryon-overlay {
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .tryon-overlay:active {
+            cursor: grabbing;
+        }
     </style>
 </head>
 
@@ -79,6 +110,9 @@
                 <h1 class="heading text-6xl md:text-9xl font-black tracking-tighter">CAMPUS<br><span
                         class="text-[#adff2f]">SWAP</span></h1>
                 <p class="text-zinc-400 tracking-[0.3em] uppercase text-sm">The Student Streetwear Exchange</p>
+                <p class="text-zinc-500 text-sm md:text-base italic max-w-xl mx-auto">
+                    Trade the old, wear the new. Campus style never stands still.
+                </p>
                 <div class="pt-10">
                     <button onclick="showPage('home-page')"
                         class="bg-[#adff2f] text-black px-12 py-4 font-black hover:scale-110 transition-all">ENTER
@@ -100,6 +134,8 @@
             </div>
             <button id="sell-nav-btn" onclick="showPage('sell-page')"
                 class="hidden text-xs font-bold border border-zinc-700 px-4 py-1 rounded-full hover:border-[#adff2f]">SELL</button>
+            <button id="tryon-nav-btn" onclick="openTryOnStudio()"
+                class="text-xs font-bold border border-zinc-700 px-4 py-1 rounded-full hover:border-[#adff2f]">TRY-ON</button>
             <i onclick="showPage('cart-page')" class="fa-solid fa-bag-shopping cursor-pointer hover:text-[#adff2f]"
                 title="Cart"></i>
             <i onclick="showPage('liked-page')" class="fa-regular fa-heart cursor-pointer hover:text-[#adff2f]"></i>
@@ -108,8 +144,102 @@
             <i onclick="showPage('profile-page')" class="fa-regular fa-user cursor-pointer hover:text-[#adff2f]"></i>
             <button id="login-nav-btn" onclick="showPage('login-page')"
                 class="text-xs font-bold border border-zinc-700 px-4 py-1 rounded-full">LOGIN</button>
+            <button id="logout-nav-btn" onclick="logoutUser()"
+                class="hidden text-xs font-bold border border-zinc-700 px-4 py-1 rounded-full hover:border-[#adff2f]">LOGOUT</button>
         </div>
     </nav>
+
+    <!-- TRY-ON PAGE -->
+    <div id="tryon-page" class="page-section">
+
+        <div class="space-y-3">
+            <label class="text-xs text-zinc-400">Try-on from cart</label>
+            <select id="tryon-item-select" class="w-full p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-sm">
+                <option value="">Cart is empty</option>
+            </select>
+            <button id="tryon-item-apply"
+                class="w-full border border-zinc-700 py-2 rounded-xl text-xs font-bold hover:border-[#adff2f]">APPLY
+                SELECTED ITEM</button>
+            <label class="flex items-center gap-2 text-xs text-zinc-400">
+                <input id="tryon-auto" type="checkbox" class="accent-[#adff2f]" checked>
+                Auto-fit to body/hand
+            </label>
+        </div>
+        <div class="p-6 max-w-6xl mx-auto">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="heading text-3xl">Try-On Studio</h2>
+                    <p id="tryon-modal-name" class="text-zinc-400 text-sm mt-1"></p>
+                </div>
+                <button id="tryon-modal-close"
+                    class="text-xs font-bold border border-zinc-700 px-4 py-2 rounded-full hover:border-[#adff2f]">BACK</button>
+            </div>
+            <div class="glass rounded-3xl overflow-hidden border border-zinc-800">
+                <div class="grid grid-cols-1 lg:grid-cols-2">
+                    <div class="bg-zinc-900 p-6">
+                        <div id="tryon-preview"
+                            class="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border border-zinc-800">
+                            <video id="tryon-video" class="w-full h-full object-cover" autoplay playsinline
+                                muted></video>
+                            <img id="tryon-overlay" src="" alt="" crossorigin="anonymous"
+                                class="tryon-overlay absolute left-1/2 top-1/2 select-none" />
+                        </div>
+                        <p id="tryon-status" class="text-xs text-zinc-500 mt-3">Camera idle</p>
+                    </div>
+                    <div class="p-8 space-y-6">
+                        <div>
+                            <h3 class="heading text-2xl">Virtual Try-On</h3>
+                            <p class="text-zinc-400 text-sm mt-2">Use your camera and drag the item into position. PNGs
+                                with transparent backgrounds look best.</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="text-xs text-zinc-400">Overlay image (optional)</label>
+                            <input id="tryon-file" type="file" accept="image/*" class="w-full text-xs" />
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs text-zinc-400">Scale</label>
+                                <input id="tryon-scale" type="range" min="0.5" max="2" step="0.01" value="1"
+                                    class="w-full">
+                            </div>
+                            <div>
+                                <label class="text-xs text-zinc-400">Rotate</label>
+                                <input id="tryon-rotate" type="range" min="-30" max="30" step="1" value="0"
+                                    class="w-full">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-zinc-400">Move X</label>
+                                    <input id="tryon-offset-x" type="range" min="-150" max="150" step="1" value="0"
+                                        class="w-full">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-zinc-400">Move Y</label>
+                                    <input id="tryon-offset-y" type="range" min="-150" max="150" step="1" value="0"
+                                        class="w-full">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <button id="tryon-start"
+                                class="w-full bg-[#adff2f] text-black py-3 rounded-xl font-bold">START CAMERA</button>
+                            <button id="tryon-stop"
+                                class="w-full border border-zinc-700 py-3 rounded-xl font-bold hover:border-[#adff2f]">STOP
+                                CAMERA</button>
+                            <button id="tryon-snap"
+                                class="w-full border border-zinc-700 py-3 rounded-xl font-bold hover:border-[#adff2f]">SNAPSHOT</button>
+                            <button id="tryon-reset"
+                                class="w-full border border-zinc-700 py-3 rounded-xl font-bold hover:border-[#adff2f]">RESET</button>
+                        </div>
+                        <canvas id="tryon-canvas" class="hidden"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- HOME PAGE -->
     <div id="home-page" class="page-section">
@@ -132,53 +262,99 @@
                     data-tags="tee graphic oversized"
                     data-description="Relaxed-fit cotton tee with bold graphic print and drop shoulders." data-size="M"
                     data-condition="New" data-color="Black" data-material="100% Cotton" data-location="Gudlavalleru"
-                    data-seller-phone="919888888888">
+                    data-seller-phone="919885751835"
+                    data-tryon="https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=500&q=80">
                     <div
                         class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                         <img src="https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=500&q=80"
                             class="w-full h-full object-cover group-hover:scale-105 transition">
                     </div>
                     <h3 class="font-bold">Oversized Graphic Tee</h3>
-                    <p class="text-[#adff2f]">$35</p>
+                    <p class="text-[#adff2f]">₹35</p>
                 </div>
                 <div class="group cursor-pointer" data-product="Varsity Jacket" data-price="85"
                     data-tags="jacket varsity outerwear"
                     data-description="Classic varsity silhouette with ribbed cuffs and a soft brushed lining."
                     data-size="L" data-condition="Like New" data-color="Navy" data-material="Wool Blend"
-                    data-location="Gudlavalleru" data-seller-phone="919888888888">
+                    data-location="Gudlavalleru" data-seller-phone="919885751835"
+                    data-tryon="https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=500&q=80">
                     <div
                         class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                         <img src="https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=500&q=80"
                             class="w-full h-full object-cover group-hover:scale-105 transition">
                     </div>
                     <h3 class="font-bold">Varsity Jacket</h3>
-                    <p class="text-[#adff2f]">$85</p>
+                    <p class="text-[#adff2f]">₹85</p>
                 </div>
                 <div class="group cursor-pointer" data-product="Cargo Pants" data-price="45"
                     data-tags="pants cargo bottoms"
                     data-description="Utility cargo pants with tapered fit and reinforced stitching." data-size="L"
                     data-condition="New" data-color="Olive" data-material="Cotton Twill" data-location="Gudlavalleru"
-                    data-seller-phone="919888888888">
+                    data-seller-phone="919885751835"
+                    data-tryon="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=500&q=80">
                     <div
                         class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                         <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=500&q=80"
                             class="w-full h-full object-cover group-hover:scale-105 transition">
                     </div>
                     <h3 class="font-bold">Cargo Pants</h3>
-                    <p class="text-[#adff2f]">$45</p>
+                    <p class="text-[#adff2f]">₹45</p>
                 </div>
                 <div class="group cursor-pointer" data-product="Designer Sneakers" data-price="120"
                     data-tags="sneakers shoes footwear"
                     data-description="Premium sneakers with cushioned insole and breathable mesh." data-size="9"
                     data-condition="New" data-color="White" data-material="Leather + Mesh" data-location="Gudlavalleru"
-                    data-seller-phone="919888888888">
+                    data-seller-phone="919885751835"
+                    data-tryon="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=500&q=80">
                     <div
                         class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                         <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=500&q=80"
                             class="w-full h-full object-cover group-hover:scale-105 transition">
                     </div>
                     <h3 class="font-bold">Designer Sneakers</h3>
-                    <p class="text-[#adff2f]">$120</p>
+                    <p class="text-[#adff2f]">₹120</p>
+                </div>
+                <div class="group cursor-pointer" data-product="Minimalist Watch" data-price="90"
+                    data-tags="watch accessories"
+                    data-description="Slim stainless steel watch with clean dial and leather strap."
+                    data-size="One Size" data-condition="New" data-color="Black" data-material="Stainless Steel"
+                    data-location="Gudlavalleru" data-seller-phone="919885751835"
+                    data-tryon="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=500&q=80">
+                    <div
+                        class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                        <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=500&q=80"
+                            class="w-full h-full object-cover group-hover:scale-105 transition">
+                    </div>
+                    <h3 class="font-bold">Minimalist Watch</h3>
+                    <p class="text-[#adff2f]">₹90</p>
+                </div>
+                <div class="group cursor-pointer" data-product="Retro Sunglasses" data-price="55"
+                    data-tags="sunglasses eyewear accessories"
+                    data-description="Tinted lenses with a bold, retro frame." data-size="One Size"
+                    data-condition="Like New" data-color="Amber" data-material="Acetate" data-location="Gudlavalleru"
+                    data-seller-phone="919885751835"
+                    data-tryon="https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=500&q=80">
+                    <div
+                        class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                        <img src="https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=500&q=80"
+                            class="w-full h-full object-cover group-hover:scale-105 transition">
+                    </div>
+                    <h3 class="font-bold">Retro Sunglasses</h3>
+                    <p class="text-[#adff2f]">₹55</p>
+                </div>
+                <div class="group cursor-pointer" data-product="Canvas Backpack" data-price="75"
+                    data-tags="backpack bag accessories"
+                    data-description="Durable canvas backpack with padded straps and laptop sleeve." data-size="20L"
+                    data-condition="New" data-color="Sand" data-material="Canvas" data-location="Gudlavalleru"
+                    data-seller-phone="919885751835"
+                    data-tryon="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=500&q=80">
+                    <div
+                        class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                        <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=500&q=80"
+                            class="w-full h-full object-cover group-hover:scale-105 transition">
+                    </div>
+                    <h3 class="font-bold">Canvas Backpack</h3>
+                    <p class="text-[#adff2f]">₹75</p>
                 </div>
             </div>
             <div id="search-empty" class="hidden text-center text-zinc-500 mt-8">No products match your search.</div>
@@ -196,13 +372,17 @@
 
                 <h2 class="heading text-2xl mb-8">WELCOME BACK</h2>
                 <div class="space-y-4">
-                    <input id="login-phone" type="tel" placeholder="Phone Number (e.g., +911234567890)"
-                        class="w-full p-4 rounded-xl" pattern="\+91[0-9]{10}" title="Enter +91 followed by 10 digits">
-                    <input type="password" placeholder="Password" class="w-full p-4 rounded-xl">
+                    <input id="login-email" type="email" placeholder="Email (e.g., you@gmail.com)"
+                        class="w-full p-4 rounded-xl" autocomplete="email">
+                    <input id="login-otp" type="text" inputmode="numeric" placeholder="OTP Code (optional)"
+                        class="w-full p-4 rounded-xl">
                     <button onclick="loginUser()"
-                        class="w-full bg-white text-black py-4 rounded-xl font-bold hover:bg-opacity-90 transition">LOG
-                        IN</button>
+                        class="w-full bg-white text-black py-4 rounded-xl font-bold hover:bg-opacity-90 transition">SEND
+                        LINK / VERIFY</button>
 
+                    <div class="text-center pt-2">
+                        <p class="text-xs text-zinc-500">Enter your email, tap Send Link, then verify.</p>
+                    </div>
                     <div class="text-center pt-4">
                         <p class="text-sm text-zinc-500">
                             New here?
@@ -234,10 +414,10 @@
                 <h2 class="heading text-2xl mb-8">JOIN THE SQUAD</h2>
                 <div class="space-y-4">
                     <input type="text" placeholder="Full Name" class="w-full p-4 rounded-xl">
-                    <input id="signup-phone" type="tel" placeholder="Phone Number (e.g., +911234567890)"
-                        class="w-full p-4 rounded-xl" pattern="\+91[0-9]{10}" title="Enter +91 followed by 10 digits">
-                    <input type="password" placeholder="Create Password" class="w-full p-4 rounded-xl">
-                    <input type="password" placeholder="Confirm Password" class="w-full p-4 rounded-xl">
+                    <input id="signup-email" type="email" placeholder="Email (e.g., you@gmail.com)"
+                        class="w-full p-4 rounded-xl" autocomplete="email">
+                    <input id="signup-otp" type="text" inputmode="numeric" placeholder="OTP Code (optional)"
+                        class="w-full p-4 rounded-xl">
 
                     <div class="flex items-start space-x-2 mt-2">
                         <input type="checkbox" id="terms" class="mt-1">
@@ -249,9 +429,11 @@
                         </label>
                     </div>
 
+                    <p class="text-xs text-zinc-500">Tap Send Link, then verify your email.</p>
+
                     <button onclick="signupUser()"
-                        class="w-full bg-[#adff2f] text-black py-4 rounded-xl font-bold hover:opacity-90 transition mt-4">CREATE
-                        ACCOUNT</button>
+                        class="w-full bg-[#adff2f] text-black py-4 rounded-xl font-bold hover:opacity-90 transition mt-4">SEND
+                        LINK / VERIFY</button>
 
                     <div class="text-center pt-4">
                         <p class="text-sm text-zinc-500">
@@ -275,16 +457,23 @@
                         class="w-24 h-24 bg-[#adff2f] rounded-full flex items-center justify-center text-black text-3xl font-black">
                         JD</div>
                     <div>
-                        <h2 class="heading text-2xl">John Doe</h2>
-                        <p class="text-zinc-500">Student at State University</p>
-                        <p class="text-zinc-400 text-sm mt-1">Member since October 2023</p>
+                        <h2 id="profile-name" class="heading text-2xl">John Doe</h2>
+                        <p id="profile-meta" class="text-zinc-500">Student at State University</p>
+                        <p id="profile-phone" class="text-zinc-400 text-sm mt-1">Email: —</p>
                     </div>
                 </div>
-                <button onclick="showPage('contact-page')"
-                    class="glass px-6 py-3 rounded-xl flex items-center space-x-2 hover:bg-zinc-800 transition">
-                    <i class="fa-solid fa-headset"></i>
-                    <span>Contact Support</span>
-                </button>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="showPage('contact-page')"
+                        class="glass px-6 py-3 rounded-xl flex items-center justify-center space-x-2 hover:bg-zinc-800 transition">
+                        <i class="fa-solid fa-headset"></i>
+                        <span>Contact Support</span>
+                    </button>
+                    <button onclick="logoutUser()"
+                        class="glass px-6 py-3 rounded-xl flex items-center justify-center space-x-2 hover:bg-zinc-800 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -311,14 +500,14 @@
                                 <p class="text-sm font-bold">Vintage North Face Jacket</p>
                                 <p class="text-zinc-500 text-xs">Oct 15, 2023</p>
                             </div>
-                            <span class="text-[#adff2f] font-bold">$120</span>
+                            <span class="text-[#adff2f] font-bold">₹120</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <div>
                                 <p class="text-sm font-bold">Graphic Hoodie</p>
                                 <p class="text-zinc-500 text-xs">Oct 10, 2023</p>
                             </div>
-                            <span class="text-[#adff2f] font-bold">$65</span>
+                            <span class="text-[#adff2f] font-bold">₹65</span>
                         </div>
                     </div>
                 </div>
@@ -363,6 +552,20 @@
                     </div>
                 </div>
             </div>
+
+            <div class="glass p-6 rounded-2xl mt-6">
+                <h4 class="font-bold mb-4 border-b border-zinc-800 pb-3">Set Password</h4>
+                <p class="text-zinc-500 text-sm mb-4">Set a permanent password for email + password login.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input id="profile-password" type="password" placeholder="New password"
+                        class="w-full p-4 rounded-xl">
+                    <input id="profile-password-confirm" type="password" placeholder="Confirm password"
+                        class="w-full p-4 rounded-xl">
+                </div>
+                <button onclick="setAccountPassword()"
+                    class="mt-4 w-full md:w-auto bg-[#adff2f] text-black py-3 px-6 rounded-xl font-bold hover:opacity-90 transition">SAVE
+                    PASSWORD</button>
+            </div>
         </div>
     </div>
 
@@ -378,10 +581,42 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input id="sell-name" type="text" placeholder="Product Name" class="w-full p-4 rounded-xl"
                             required>
-                        <input id="sell-price" type="number" min="1" step="0.01" placeholder="Price (USD)"
+                        <input id="sell-price" type="number" min="1" step="0.01" placeholder="Price (INR)"
                             class="w-full p-4 rounded-xl" required>
-                        <input id="sell-tags" type="text" placeholder="Tags (tee, jacket, sneakers)"
-                            class="w-full p-4 rounded-xl">
+                        <input id="sell-tags" type="text" placeholder="Tags (tee, jacket, sneakers, watch, bag)"
+                            list="sell-tags-list" class="w-full p-4 rounded-xl">
+                        <datalist id="sell-tags-list">
+                            <option value="tops"></option>
+                            <option value="outerwear"></option>
+                            <option value="bottoms"></option>
+                            <option value="footwear"></option>
+                            <option value="accessories"></option>
+                            <option value="bags"></option>
+                            <option value="watches"></option>
+                            <option value="eyewear"></option>
+                            <option value="jewelry"></option>
+                            <option value="belts"></option>
+                            <option value="hats"></option>
+                            <option value="scarves"></option>
+                        </datalist>
+                        <select id="sell-category"
+                            class="w-full p-4 rounded-xl text-white bg-zinc-900 border border-zinc-800 text-sm md:text-base">
+                            <option value="">Select category</option>
+                            <option value="tops">Tops</option>
+                            <option value="outerwear">Outerwear</option>
+                            <option value="bottoms">Bottoms</option>
+                            <option value="footwear">Footwear</option>
+                            <option value="accessories">Accessories</option>
+                            <option value="bags">Bags</option>
+                            <option value="watches">Watches</option>
+                            <option value="eyewear">Eyewear</option>
+                            <option value="jewelry">Jewelry</option>
+                            <option value="belts">Belts</option>
+                            <option value="hats">Hats</option>
+                            <option value="scarves">Scarves</option>
+                        </select>
+                        <p class="md:col-span-2 text-xs text-zinc-400">Categories: Tops, Outerwear, Bottoms, Footwear,
+                            Accessories, Bags, Watches, Eyewear, Jewelry, Belts, Hats, Scarves.</p>
                         <input id="sell-size" type="text" placeholder="Size (M, L, 9)" class="w-full p-4 rounded-xl">
                         <input id="sell-condition" type="text" placeholder="Condition (New, Like New, Used)"
                             class="w-full p-4 rounded-xl">
@@ -392,6 +627,11 @@
                             class="w-full p-4 rounded-xl" required>
                         <input id="sell-image" type="url" placeholder="Image URL (optional)"
                             class="w-full p-4 rounded-xl">
+                        <div class="md:col-span-2 space-y-2">
+                            <input id="sell-images" type="file" accept="image/*" multiple class="w-full p-4 rounded-xl">
+                            <p class="text-xs text-zinc-400">Note: Include at least one transparent PNG for best try-on
+                                results.</p>
+                        </div>
                     </div>
                     <textarea id="sell-description" rows="4" placeholder="Product Description"
                         class="w-full p-4 rounded-xl" required></textarea>
@@ -479,8 +719,13 @@
     <div id="cart-page" class="page-section">
         <div class="p-6 max-w-4xl mx-auto">
             <div class="flex items-center justify-between mb-8">
-                <h2 class="heading text-2xl">YOUR CART</h2>
-                <span id="cart-count" class="text-xs text-zinc-500">0 items</span>
+                <div>
+                    <h2 class="heading text-2xl">YOUR CART</h2>
+                    <span id="cart-count" class="text-xs text-zinc-500">0 items</span>
+                </div>
+                <button id="cart-tryon-btn"
+                    class="text-xs font-bold border border-zinc-700 px-4 py-2 rounded-full hover:border-[#adff2f]">TRY
+                    CART</button>
             </div>
 
             <div id="cart-items" class="space-y-4"></div>
@@ -489,15 +734,15 @@
             <div class="glass p-6 rounded-2xl mt-8">
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-sm text-zinc-400">Subtotal</p>
-                    <p id="cart-subtotal" class="font-bold">$0</p>
+                    <p id="cart-subtotal" class="font-bold">₹0</p>
                 </div>
                 <div class="flex items-center justify-between mb-4">
                     <p class="text-sm text-zinc-400">Shipping</p>
-                    <p class="font-bold">$0</p>
+                    <p class="font-bold">₹0</p>
                 </div>
                 <div class="flex items-center justify-between border-t border-zinc-800 pt-4">
                     <p class="text-sm text-zinc-400">Total</p>
-                    <p id="cart-total" class="text-[#adff2f] text-xl font-bold">$0</p>
+                    <p id="cart-total" class="text-[#adff2f] text-xl font-bold">₹0</p>
                 </div>
             </div>
         </div>
@@ -567,48 +812,21 @@
         </div>
     </div>
 
-    <!-- VIRTUAL TRY-ON MODAL -->
-    <div id="tryon-modal" class="fixed inset-0 z-50 hidden items-center justify-center">
-        <div id="tryon-modal-backdrop" class="absolute inset-0 bg-black/80"></div>
-        <div class="relative z-10 w-[92%] max-w-3xl glass rounded-3xl overflow-hidden border border-zinc-800">
-            <button id="tryon-modal-close"
-                class="absolute top-4 right-4 w-9 h-9 rounded-full bg-zinc-900 text-white hover:text-[#adff2f]">&times;</button>
-            <div class="grid grid-cols-1 md:grid-cols-2">
-                <div class="bg-zinc-900">
-                    <img id="tryon-modal-image" src="" alt=""
-                        class="w-full h-full object-cover aspect-[4/5] md:aspect-auto">
-                </div>
-                <div class="p-8 space-y-4">
-                    <h3 class="heading text-2xl">Virtual Try-On</h3>
-                    <p id="tryon-modal-name" class="text-zinc-300 text-sm"></p>
-                    <p class="text-zinc-400 text-sm">
-                        This is a demo try-on view. In a real platform, camera or avatar-based fitting would appear
-                        here.
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <button id="tryon-modal-use"
-                            class="w-full bg-[#adff2f] text-black py-3 rounded-xl font-bold">START TRY-ON</button>
-                    </div>
-                    <p class="text-xs text-zinc-500">Tip: Upload a clear front photo for best results.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- CHATBOT WIDGET -->
     <div class="fixed bottom-6 right-6 z-50">
         <button id="chatbot-toggle"
             class="w-14 h-14 rounded-full bg-[#adff2f] text-black flex items-center justify-center shadow-lg">
             <i class="fa-solid fa-comment-dots text-xl"></i>
         </button>
-        <div id="chatbot-panel" class="hidden glass w-[320px] md:w-[360px] h-[420px] rounded-2xl mt-3 overflow-hidden">
+        <div id="chatbot-panel"
+            class="hidden glass w-[320px] md:w-[360px] h-[420px] rounded-2xl mt-3 overflow-hidden flex flex-col">
             <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
                 <div class="flex items-center space-x-2">
                     <div
                         class="w-8 h-8 rounded-full bg-[#adff2f] text-black flex items-center justify-center font-black text-xs">
-                        CS</div>
+                        O</div>
                     <div>
-                        <p class="text-sm font-bold">CampusSwap Bot</p>
+                        <p class="text-sm font-bold">Omega</p>
                         <p class="text-xs text-zinc-500">Search products fast</p>
                     </div>
                 </div>
@@ -617,7 +835,7 @@
             <div class="px-4 pt-3 pb-2">
                 <div id="chatbot-suggestions" class="flex flex-wrap gap-2"></div>
             </div>
-            <div id="chatbot-messages" class="px-4 pb-4 space-y-3 text-sm h-[268px] overflow-y-auto"></div>
+            <div id="chatbot-messages" class="px-4 pb-4 space-y-3 text-sm flex-1 overflow-y-auto"></div>
             <div class="p-3 border-t border-zinc-800">
                 <div class="flex items-center space-x-2">
                     <input id="chatbot-input" type="text" placeholder="Try 'sneakers' or 'jacket'"
@@ -638,10 +856,446 @@
 
     <!-- MAIN SCRIPT -->
     <script>
+        const SUPABASE_URL = 'https://uwbylhsostgtkybnufvv.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_WZ59l4tzrWyhPur61_JLpA_hH6voRCR';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let isLoggedIn = false;
+        let currentUser = null;
         let listingsCount = 0;
         const cartItems = [];
         const likedItems = [];
+        let pendingSignupName = '';
+        const tryOnState = {
+            stream: null,
+            offsetX: 0,
+            offsetY: 0,
+            scale: 1,
+            rotate: 0,
+            baseWidth: 0,
+            baseHeight: 0,
+            dragActive: false,
+            dragStartX: 0,
+            dragStartY: 0,
+            overlayStartX: 0,
+            overlayStartY: 0,
+            overlayUrl: null,
+            returnPage: 'home-page',
+            overlayRatio: 1,
+            autoFit: true,
+            trackingActive: false,
+            trackingBusy: false,
+            pose: null,
+            hands: null,
+            lastPose: null,
+            lastHand: null,
+            currentItemId: null,
+            currentCategory: 'torso'
+        };
+
+        function getActivePageId() {
+            const active = document.querySelector('.page-section.active-page');
+            return active ? active.id : 'home-page';
+        }
+
+        function setTryOnStatus(message, isError) {
+            const status = document.getElementById('tryon-status');
+            if (!status) return;
+            status.textContent = message;
+            status.classList.toggle('text-red-400', !!isError);
+        }
+
+        function updateOverlayTransform() {
+            const overlay = document.getElementById('tryon-overlay');
+            if (!overlay) return;
+            overlay.style.transform = `translate(-50%, -50%) translate(${tryOnState.offsetX}px, ${tryOnState.offsetY}px) scale(${tryOnState.scale}) rotate(${tryOnState.rotate}deg)`;
+        }
+
+        function syncTryOnSliders() {
+            const scale = document.getElementById('tryon-scale');
+            const rotate = document.getElementById('tryon-rotate');
+            const offsetX = document.getElementById('tryon-offset-x');
+            const offsetY = document.getElementById('tryon-offset-y');
+            if (scale) scale.value = String(tryOnState.scale);
+            if (rotate) rotate.value = String(tryOnState.rotate);
+            if (offsetX) offsetX.value = String(Math.round(tryOnState.offsetX));
+            if (offsetY) offsetY.value = String(Math.round(tryOnState.offsetY));
+        }
+
+        function initTryOnOverlaySize() {
+            const overlay = document.getElementById('tryon-overlay');
+            const preview = document.getElementById('tryon-preview');
+            if (!overlay || !preview || !overlay.naturalWidth) return;
+
+            const maxWidth = Math.min(preview.clientWidth * 0.7, 420);
+            const ratio = overlay.naturalHeight / overlay.naturalWidth;
+            tryOnState.overlayRatio = ratio || 1;
+            tryOnState.baseWidth = maxWidth;
+            tryOnState.baseHeight = maxWidth * tryOnState.overlayRatio;
+            overlay.style.width = `${tryOnState.baseWidth}px`;
+            overlay.style.height = 'auto';
+            updateOverlayTransform();
+        }
+
+        function setAutoFitEnabled(enabled) {
+            tryOnState.autoFit = !!enabled;
+            const checkbox = document.getElementById('tryon-auto');
+            if (checkbox) checkbox.checked = tryOnState.autoFit;
+            if (tryOnState.autoFit) {
+                startTryOnTracking();
+            } else {
+                stopTryOnTracking();
+            }
+        }
+
+        function disableAutoFitOnManual() {
+            if (!tryOnState.autoFit) return;
+            setAutoFitEnabled(false);
+            setTryOnStatus('Auto-fit paused. Drag or use sliders.', false);
+        }
+
+        function detectItemCategory(item) {
+            const text = `${item?.tags || ''} ${item?.name || ''}`.toLowerCase();
+            if (/(watch|bracelet|band)/.test(text)) return 'wrist';
+            if (/(sneaker|shoe|boot)/.test(text)) return 'foot';
+            if (/(pants|jean|trouser|cargo|short)/.test(text)) return 'legs';
+            if (/(jacket|hoodie|shirt|tee|t-shirt|top|coat|dress)/.test(text)) return 'torso';
+            return 'torso';
+        }
+
+        function setTryOnItemData(item) {
+            const tryonName = document.getElementById('tryon-modal-name');
+            const select = document.getElementById('tryon-item-select');
+            if (tryonName) tryonName.textContent = item?.name || 'Try-On Studio';
+            tryOnState.currentItemId = item?.id || null;
+            tryOnState.currentCategory = detectItemCategory(item || {});
+            const overlaySrc = item?.tryon || item?.image || '';
+            if (overlaySrc) applyTryOnOverlay(overlaySrc);
+            if (select && tryOnState.currentItemId) select.value = tryOnState.currentItemId;
+            resetTryOnControls();
+            if (tryOnState.autoFit) {
+                setTimeout(() => applyAutoFitFromLandmarks(), 80);
+            }
+        }
+
+        function renderTryOnItemOptions() {
+            const select = document.getElementById('tryon-item-select');
+            if (!select) return;
+            select.innerHTML = '';
+            if (cartItems.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Cart is empty';
+                select.appendChild(option);
+                return;
+            }
+
+            cartItems.forEach((item) => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.name} (${item.size || '—'})`;
+                select.appendChild(option);
+            });
+
+            if (tryOnState.currentItemId) {
+                select.value = tryOnState.currentItemId;
+            } else if (cartItems[0]) {
+                select.value = cartItems[0].id;
+            }
+        }
+
+        function applyTryOnItemById(id) {
+            const item = cartItems.find(entry => entry.id === id);
+            if (!item) return;
+            setTryOnItemData(item);
+        }
+
+        function initTryOnTrackers() {
+            if (!window.Pose || !window.Hands) {
+                setTryOnStatus('Auto-fit unavailable (MediaPipe failed to load).', true);
+                return;
+            }
+
+            if (!tryOnState.pose) {
+                tryOnState.pose = new Pose({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
+                });
+                tryOnState.pose.setOptions({
+                    modelComplexity: 1,
+                    smoothLandmarks: true,
+                    enableSegmentation: false,
+                    minDetectionConfidence: 0.6,
+                    minTrackingConfidence: 0.6
+                });
+                tryOnState.pose.onResults((results) => {
+                    tryOnState.lastPose = results.poseLandmarks || null;
+                });
+            }
+
+            if (!tryOnState.hands) {
+                tryOnState.hands = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`
+                });
+                tryOnState.hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 0,
+                    minDetectionConfidence: 0.6,
+                    minTrackingConfidence: 0.6
+                });
+                tryOnState.hands.onResults((results) => {
+                    tryOnState.lastHand = results.multiHandLandmarks?.[0] || null;
+                });
+            }
+        }
+
+        async function trackTryOnFrame() {
+            if (!tryOnState.trackingActive) return;
+            const video = document.getElementById('tryon-video');
+            if (!video || !video.videoWidth) {
+                requestAnimationFrame(trackTryOnFrame);
+                return;
+            }
+
+            if (!tryOnState.trackingBusy) {
+                tryOnState.trackingBusy = true;
+                try {
+                    if (tryOnState.pose) await tryOnState.pose.send({ image: video });
+                    if (tryOnState.hands) await tryOnState.hands.send({ image: video });
+                } finally {
+                    tryOnState.trackingBusy = false;
+                }
+            }
+
+            if (tryOnState.autoFit) {
+                applyAutoFitFromLandmarks();
+            }
+            requestAnimationFrame(trackTryOnFrame);
+        }
+
+        function startTryOnTracking() {
+            initTryOnTrackers();
+            if (!tryOnState.pose && !tryOnState.hands) return;
+            if (tryOnState.trackingActive) return;
+            tryOnState.trackingActive = true;
+            trackTryOnFrame();
+        }
+
+        function stopTryOnTracking() {
+            tryOnState.trackingActive = false;
+        }
+
+        function applyAutoFitFromLandmarks() {
+            const preview = document.getElementById('tryon-preview');
+            if (!preview || !tryOnState.overlayRatio) return;
+
+            const toPx = (landmark) => ({
+                x: landmark.x * preview.clientWidth,
+                y: landmark.y * preview.clientHeight
+            });
+
+            let center = null;
+            let targetWidth = null;
+
+            if (tryOnState.currentCategory === 'wrist' && tryOnState.lastHand) {
+                const wrist = toPx(tryOnState.lastHand[0]);
+                const index = toPx(tryOnState.lastHand[5]);
+                const dist = Math.hypot(wrist.x - index.x, wrist.y - index.y);
+                center = wrist;
+                targetWidth = dist * 3.2;
+            } else if (tryOnState.lastPose) {
+                const pose = tryOnState.lastPose;
+                const leftShoulder = pose[11];
+                const rightShoulder = pose[12];
+                const leftHip = pose[23];
+                const rightHip = pose[24];
+                const leftAnkle = pose[27];
+                const rightAnkle = pose[28];
+
+                if (tryOnState.currentCategory === 'foot' && leftAnkle && rightAnkle) {
+                    const a = toPx(leftAnkle);
+                    const b = toPx(rightAnkle);
+                    center = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+                    targetWidth = Math.hypot(a.x - b.x, a.y - b.y) * 1.6;
+                } else if (tryOnState.currentCategory === 'legs' && leftHip && rightHip && leftAnkle && rightAnkle) {
+                    const hip = toPx({
+                        x: (leftHip.x + rightHip.x) / 2,
+                        y: (leftHip.y + rightHip.y) / 2
+                    });
+                    const ankle = toPx({
+                        x: (leftAnkle.x + rightAnkle.x) / 2,
+                        y: (leftAnkle.y + rightAnkle.y) / 2
+                    });
+                    center = { x: hip.x, y: (hip.y + ankle.y) / 2 };
+                    targetWidth = Math.hypot(leftHip.x - rightHip.x, leftHip.y - rightHip.y) * preview.clientWidth * 1.4;
+                } else if (leftShoulder && rightShoulder && leftHip && rightHip) {
+                    const shoulderMid = toPx({
+                        x: (leftShoulder.x + rightShoulder.x) / 2,
+                        y: (leftShoulder.y + rightShoulder.y) / 2
+                    });
+                    const hipMid = toPx({
+                        x: (leftHip.x + rightHip.x) / 2,
+                        y: (leftHip.y + rightHip.y) / 2
+                    });
+                    center = { x: shoulderMid.x, y: (shoulderMid.y + hipMid.y) / 2 };
+                    targetWidth = Math.hypot(leftShoulder.x - rightShoulder.x, leftShoulder.y - rightShoulder.y) * preview.clientWidth * 1.7;
+                }
+            }
+
+            if (!center || !targetWidth) return;
+
+            const previewCenterX = preview.clientWidth / 2;
+            const previewCenterY = preview.clientHeight / 2;
+            tryOnState.offsetX = center.x - previewCenterX;
+            tryOnState.offsetY = center.y - previewCenterY;
+            tryOnState.baseWidth = Math.max(120, Math.min(targetWidth, preview.clientWidth * 0.9));
+            tryOnState.baseHeight = tryOnState.baseWidth * tryOnState.overlayRatio;
+            tryOnState.scale = 1;
+            tryOnState.rotate = 0;
+
+            const overlay = document.getElementById('tryon-overlay');
+            if (overlay) overlay.style.width = `${tryOnState.baseWidth}px`;
+            updateOverlayTransform();
+            syncTryOnSliders();
+        }
+
+        async function startTryOnCamera() {
+            const video = document.getElementById('tryon-video');
+            if (!video) return;
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setTryOnStatus('Camera not supported on this browser.', true);
+                return;
+            }
+
+            if (tryOnState.stream) {
+                setTryOnStatus('Camera already running.');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } },
+                    audio: false
+                });
+                tryOnState.stream = stream;
+                video.srcObject = stream;
+                await video.play();
+                setTryOnStatus('Camera on');
+                if (tryOnState.autoFit) startTryOnTracking();
+            } catch (error) {
+                setTryOnStatus('Camera blocked. Allow permissions and try again.', true);
+            }
+        }
+
+        function stopTryOnCamera() {
+            const video = document.getElementById('tryon-video');
+            if (tryOnState.stream) {
+                tryOnState.stream.getTracks().forEach(track => track.stop());
+                tryOnState.stream = null;
+            }
+            if (video) video.srcObject = null;
+            stopTryOnTracking();
+            setTryOnStatus('Camera stopped');
+        }
+
+        function resetTryOnControls() {
+            tryOnState.offsetX = 0;
+            tryOnState.offsetY = 0;
+            tryOnState.scale = 1;
+            tryOnState.rotate = 0;
+            syncTryOnSliders();
+            updateOverlayTransform();
+        }
+
+        function applyTryOnOverlay(src) {
+            const overlay = document.getElementById('tryon-overlay');
+            if (!overlay) return;
+            overlay.crossOrigin = 'anonymous';
+            overlay.onload = () => {
+                initTryOnOverlaySize();
+                if (tryOnState.autoFit) applyAutoFitFromLandmarks();
+            };
+            overlay.src = src;
+        }
+
+        function setupTryOnDrag() {
+            const overlay = document.getElementById('tryon-overlay');
+            if (!overlay) return;
+
+            overlay.addEventListener('pointerdown', (event) => {
+                event.preventDefault();
+                disableAutoFitOnManual();
+                overlay.setPointerCapture(event.pointerId);
+                tryOnState.dragActive = true;
+                tryOnState.dragStartX = event.clientX;
+                tryOnState.dragStartY = event.clientY;
+                tryOnState.overlayStartX = tryOnState.offsetX;
+                tryOnState.overlayStartY = tryOnState.offsetY;
+            });
+
+            overlay.addEventListener('pointermove', (event) => {
+                if (!tryOnState.dragActive) return;
+                const dx = event.clientX - tryOnState.dragStartX;
+                const dy = event.clientY - tryOnState.dragStartY;
+                tryOnState.offsetX = tryOnState.overlayStartX + dx;
+                tryOnState.offsetY = tryOnState.overlayStartY + dy;
+                updateOverlayTransform();
+                syncTryOnSliders();
+            });
+
+            overlay.addEventListener('pointerup', () => {
+                tryOnState.dragActive = false;
+            });
+
+            overlay.addEventListener('pointercancel', () => {
+                tryOnState.dragActive = false;
+            });
+        }
+
+        function captureTryOnSnapshot() {
+            const video = document.getElementById('tryon-video');
+            const overlay = document.getElementById('tryon-overlay');
+            const canvas = document.getElementById('tryon-canvas');
+            const preview = document.getElementById('tryon-preview');
+            if (!video || !overlay || !canvas || !preview) return;
+
+            if (!video.videoWidth) {
+                alert('Camera is not ready yet.');
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            if (overlay.complete && overlay.naturalWidth) {
+                const scaleX = canvas.width / preview.clientWidth;
+                const scaleY = canvas.height / preview.clientHeight;
+                const centerX = (preview.clientWidth / 2 + tryOnState.offsetX) * scaleX;
+                const centerY = (preview.clientHeight / 2 + tryOnState.offsetY) * scaleY;
+                const drawW = tryOnState.baseWidth * tryOnState.scale * scaleX;
+                const drawH = tryOnState.baseHeight * tryOnState.scale * scaleY;
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate((tryOnState.rotate * Math.PI) / 180);
+                ctx.drawImage(overlay, -drawW / 2, -drawH / 2, drawW, drawH);
+                ctx.restore();
+            }
+
+            try {
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = 'campusswap-tryon.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                alert('Snapshot failed. Use a local upload or CORS-enabled image.');
+            }
+        }
 
         // Navigation Function
         function showPage(pageId) {
@@ -669,52 +1323,68 @@
                 nav.classList.remove('hidden');
             }
 
+            if (pageId !== 'tryon-page') {
+                stopTryOnCamera();
+            }
+
             // Scroll to top
             window.scrollTo(0, 0);
         }
 
         // Login Page Functions
-        function loginUser() {
-            const phone = document.getElementById('login-phone').value.trim();
-            const password = document.querySelector('#login-page input[type="password"]').value;
+        async function loginUser() {
+            const email = document.getElementById('login-email').value.trim();
+            const otp = document.getElementById('login-otp').value.trim();
 
-            if (!phone || !password) {
-                alert('Please fill in all fields');
+            if (!email) {
+                alert('Please enter your email.');
                 return;
             }
 
-            if (!isValidPhone(phone)) {
-                alert('Please enter a valid phone number in the format +91XXXXXXXXXX.');
+            if (!isValidEmail(email)) {
+                alert('Please enter a valid email address.');
                 return;
             }
 
-            // Simulate login
-            alert('Logging in...');
-            isLoggedIn = true;
-            updateAuthUI();
-            showPage('home-page');
+            try {
+                if (!otp) {
+                    const { error } = await supabaseClient.auth.signInWithOtp({ email });
+                    if (error) throw error;
+                    alert('Login link sent. Check your email to verify.');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient.auth.verifyOtp({ email, token: otp, type: 'email' });
+                if (error) throw error;
+
+                currentUser = data?.user || null;
+                await upsertUserProfile({ user: currentUser, name: currentUser?.user_metadata?.name, email });
+                await loadProfile(currentUser);
+
+                isLoggedIn = !!data?.session;
+                updateAuthUI();
+                showPage('home-page');
+                alert('Login successful.');
+                document.getElementById('login-otp').value = '';
+            } catch (error) {
+                alert(error?.message || 'Login failed. Please try again.');
+            }
         }
 
         // Signup Page Functions
-        function signupUser() {
-            const name = document.querySelector('#signup-page input[type="text"]').value;
-            const phone = document.getElementById('signup-phone').value.trim();
-            const password = document.querySelectorAll('#signup-page input[type="password"]')[0].value;
-            const confirmPassword = document.querySelectorAll('#signup-page input[type="password"]')[1].value;
+        async function signupUser() {
+            const name = document.querySelector('#signup-page input[type="text"]').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const otp = document.getElementById('signup-otp').value.trim();
             const terms = document.querySelector('#signup-page input[type="checkbox"]').checked;
 
-            if (!name || !phone || !password || !confirmPassword) {
-                alert('Please fill in all fields');
+            if (!name || !email) {
+                alert('Please fill in all required fields.');
                 return;
             }
 
-            if (!isValidPhone(phone)) {
-                alert('Please enter a valid phone number in the format +91XXXXXXXXXX.');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                alert('Passwords do not match');
+            if (!isValidEmail(email)) {
+                alert('Please enter a valid email address.');
                 return;
             }
 
@@ -723,11 +1393,35 @@
                 return;
             }
 
-            // Simulate signup
-            alert('Account created successfully!');
-            isLoggedIn = true;
-            updateAuthUI();
-            showPage('home-page');
+            try {
+                if (!otp) {
+                    pendingSignupName = name;
+                    const { error } = await supabaseClient.auth.signInWithOtp({ email });
+                    if (error) throw error;
+                    alert('Signup link sent. Check your email to verify.');
+                    return;
+                }
+
+                const { data, error } = await supabaseClient.auth.verifyOtp({ email, token: otp, type: 'email' });
+                if (error) throw error;
+
+                const profileName = name || pendingSignupName;
+                if (profileName) {
+                    await supabaseClient.auth.updateUser({ data: { name: profileName } });
+                }
+
+                currentUser = data?.user || null;
+                await upsertUserProfile({ user: currentUser, name: profileName, email });
+                await loadProfile(currentUser);
+
+                isLoggedIn = !!data?.session;
+                updateAuthUI();
+                showPage('home-page');
+                alert('Account created successfully!');
+                document.getElementById('signup-otp').value = '';
+            } catch (error) {
+                alert(error?.message || 'Signup failed. Please try again.');
+            }
         }
 
         function showTerms() {
@@ -742,6 +1436,10 @@
             return /^\+91\d{10}$/.test(phone.trim());
         }
 
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+        }
+
         // Profile Page Functions
         function startSelling() {
             if (!isLoggedIn) {
@@ -752,11 +1450,57 @@
             showPage('sell-page');
         }
 
-        function editProfile() {
+        async function editProfile() {
+            if (!currentUser) {
+                alert('Please log in to edit your profile.');
+                return;
+            }
+
             const newName = prompt('Enter new name:', 'John Doe');
-            if (newName) {
-                document.querySelector('#profile-page .heading.text-2xl').textContent = newName;
+            if (!newName) return;
+
+            try {
+                await supabaseClient.auth.updateUser({ data: { name: newName } });
+                await upsertUserProfile({ user: currentUser, name: newName, email: currentUser.email });
+                setProfileUI({ name: newName, email: currentUser.email });
                 alert('Profile updated!');
+            } catch (error) {
+                alert(error?.message || 'Profile update failed.');
+            }
+        }
+
+        async function setAccountPassword() {
+            if (!currentUser) {
+                alert('Please log in to set a password.');
+                return;
+            }
+
+            const password = document.getElementById('profile-password').value.trim();
+            const confirm = document.getElementById('profile-password-confirm').value.trim();
+
+            if (!password || !confirm) {
+                alert('Please fill in both password fields.');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password should be at least 6 characters.');
+                return;
+            }
+
+            if (password !== confirm) {
+                alert('Passwords do not match.');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient.auth.updateUser({ password });
+                if (error) throw error;
+                document.getElementById('profile-password').value = '';
+                document.getElementById('profile-password-confirm').value = '';
+                alert('Password saved successfully.');
+            } catch (error) {
+                alert(error?.message || 'Password update failed.');
             }
         }
 
@@ -831,6 +1575,7 @@
             const name = card.dataset.product || 'Product';
             const price = card.dataset.price || '';
             const description = card.dataset.description || 'Details coming soon.';
+            const tags = card.dataset.tags || '';
             const size = card.dataset.size || '—';
             const condition = card.dataset.condition || '—';
             const color = card.dataset.color || '—';
@@ -855,7 +1600,7 @@
                 modalImage.alt = image.alt || name;
             }
             if (modalName) modalName.textContent = name;
-            if (modalPrice) modalPrice.textContent = price ? `$${price}` : '';
+            if (modalPrice) modalPrice.textContent = price ? formatMoney(price) : '';
             if (modalDescription) modalDescription.textContent = description;
             if (modalSize) modalSize.textContent = size;
             if (modalCondition) modalCondition.textContent = condition;
@@ -875,6 +1620,8 @@
                 modal.dataset.price = price;
                 modal.dataset.size = size;
                 modal.dataset.image = image ? image.src : '';
+                modal.dataset.tryon = card.dataset.tryon || modal.dataset.image;
+                modal.dataset.tags = tags;
                 modal.dataset.description = description;
                 modal.dataset.condition = condition;
                 modal.dataset.color = color;
@@ -911,6 +1658,8 @@
             const materialValue = modal ? modal.dataset.material : '';
             const locationValue = modal ? modal.dataset.location : '';
             const sellerPhoneValue = modal ? modal.dataset.sellerPhone : '';
+            const tagsValue = modal ? modal.dataset.tags : '';
+            const tryonValue = modal ? modal.dataset.tryon : '';
             const price = parseFloat(priceValue || '0');
 
             const existing = cartItems.find(
@@ -936,7 +1685,9 @@
                 color: colorValue || '—',
                 material: materialValue || '—',
                 location: locationValue || '—',
-                sellerPhone: sellerPhoneValue || ''
+                sellerPhone: sellerPhoneValue || '',
+                tags: tagsValue || '',
+                tryon: tryonValue || imageValue || ''
             });
 
             renderCart();
@@ -967,21 +1718,28 @@
                 color: item.color || '—',
                 material: item.material || '—',
                 location: item.location || '—',
-                sellerPhone: item.sellerPhone || ''
+                sellerPhone: item.sellerPhone || '',
+                tags: item.tags || '',
+                tryon: item.tryon || item.image || ''
             });
 
             renderCart();
         }
 
         function formatMoney(value) {
-            return `$${Number(value || 0).toFixed(2).replace(/\.00$/, '')}`;
+            const amount = Number(value || 0);
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 2
+            }).format(amount);
         }
 
         function buildWhatsappLink(phone, productName, price, size, shopName) {
             const safePhone = (phone || '').replace(/\D/g, '');
             if (!safePhone) return '';
             const shopLabel = shopName ? ` via ${shopName}` : '';
-            const priceLabel = price ? `Price: ${price}. ` : '';
+            const priceLabel = price ? `Price: ₹${price}. ` : '';
             const sizeLabel = size ? `Size: ${size}. ` : '';
             const text = encodeURIComponent(
                 `Hi, I'm interested in ${productName || 'this item'}${shopLabel}. ${priceLabel}${sizeLabel}Is it still available?`
@@ -1056,6 +1814,8 @@
                 modal.dataset.price = String(item.price || '');
                 modal.dataset.size = item.size || '—';
                 modal.dataset.image = item.image || '';
+                modal.dataset.tryon = item.tryon || item.image || '';
+                modal.dataset.tags = item.tags || '';
                 modal.dataset.description = item.description || '';
                 modal.dataset.condition = item.condition || '';
                 modal.dataset.color = item.color || '';
@@ -1107,6 +1867,7 @@
                     <div class="text-right">
                         <p class="text-[#adff2f] font-bold">${formatMoney(item.price)}</p>
                         <p class="text-xs text-zinc-500">Line: ${formatMoney(item.price * (item.quantity || 0))}</p>
+                        <button class="text-xs text-zinc-300 hover:text-white" data-tryon-id="${item.id}">Try On</button>
                         <button class="text-xs text-zinc-400 hover:text-white" data-remove-id="${item.id}">Remove</button>
                     </div>
                 `;
@@ -1149,6 +1910,14 @@
                 });
             });
 
+            itemsContainer.querySelectorAll('[data-tryon-id]').forEach((btn) => {
+                btn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const id = btn.getAttribute('data-tryon-id');
+                    openTryOnFromCart(id);
+                });
+            });
+
             itemsContainer.querySelectorAll('[data-cart-id]').forEach((card) => {
                 card.addEventListener('click', (event) => {
                     if (event.target.closest('button')) return;
@@ -1158,6 +1927,8 @@
                     openCartItemDetails(item);
                 });
             });
+
+            renderTryOnItemOptions();
         }
 
         function renderWishlist() {
@@ -1213,8 +1984,102 @@
         function updateAuthUI() {
             const sellBtn = document.getElementById('sell-nav-btn');
             const loginBtn = document.getElementById('login-nav-btn');
+            const logoutBtn = document.getElementById('logout-nav-btn');
             if (sellBtn) sellBtn.classList.toggle('hidden', !isLoggedIn);
             if (loginBtn) loginBtn.classList.toggle('hidden', isLoggedIn);
+            if (logoutBtn) logoutBtn.classList.toggle('hidden', !isLoggedIn);
+        }
+
+        function setProfileUI({ name, email, location }) {
+            const nameEl = document.getElementById('profile-name');
+            const metaEl = document.getElementById('profile-meta');
+            const phoneEl = document.getElementById('profile-phone');
+
+            const safeName = name || 'CampusSwap Member';
+            const safeMeta = location ? `Location: ${location}` : 'Student at State University';
+            const safePhone = email ? `Email: ${email}` : 'Email: —';
+
+            if (nameEl) nameEl.textContent = safeName;
+            if (metaEl) metaEl.textContent = safeMeta;
+            if (phoneEl) phoneEl.textContent = safePhone;
+        }
+
+        async function upsertUserProfile({ user, name, email, location }) {
+            if (!user) return;
+            const payload = { id: user.id };
+            if (name) payload.full_name = name;
+            if (email) payload.email = email;
+            if (location) payload.location = location;
+
+            const { error } = await supabaseClient.from('profiles').upsert(payload, { onConflict: 'id' });
+            if (error) {
+                console.warn('Profile upsert failed.', error);
+            }
+        }
+
+        async function loadProfile(user) {
+            if (!user) {
+                setProfileUI({});
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('full_name, email, location')
+                .eq('id', user.id)
+                .single();
+
+            if (error || !data) {
+                setProfileUI({ name: user.user_metadata?.name, email: user.email });
+                return;
+            }
+
+            setProfileUI({
+                name: data.full_name || user.user_metadata?.name,
+                email: data.email || user.email,
+                location: data.location || null
+            });
+        }
+
+        async function logoutUser() {
+            try {
+                await supabaseClient.auth.signOut();
+            } catch (error) {
+                console.warn('Logout failed.', error);
+            }
+            isLoggedIn = false;
+            currentUser = null;
+            updateAuthUI();
+            setProfileUI({});
+            showPage('intro-page');
+        }
+
+        async function initSupabaseAuth() {
+            try {
+                const { data } = await supabaseClient.auth.getSession();
+                const session = data?.session;
+                currentUser = session?.user || null;
+                isLoggedIn = !!session;
+                updateAuthUI();
+                if (currentUser) {
+                    await loadProfile(currentUser);
+                } else {
+                    setProfileUI({});
+                }
+            } catch (error) {
+                console.warn('Supabase session check failed.', error);
+            }
+
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                currentUser = session?.user || null;
+                isLoggedIn = !!session;
+                updateAuthUI();
+                if (currentUser) {
+                    loadProfile(currentUser);
+                } else {
+                    setProfileUI({});
+                }
+            });
         }
 
         function updateListingsCount() {
@@ -1233,6 +2098,7 @@
             const name = document.getElementById('sell-name').value.trim();
             const priceRaw = document.getElementById('sell-price').value.trim();
             const tags = document.getElementById('sell-tags').value.trim();
+            const category = document.getElementById('sell-category').value.trim();
             const size = document.getElementById('sell-size').value.trim();
             const condition = document.getElementById('sell-condition').value.trim();
             const color = document.getElementById('sell-color').value.trim();
@@ -1240,6 +2106,8 @@
             const location = document.getElementById('sell-location').value.trim();
             const phone = document.getElementById('sell-phone').value.trim();
             const imageUrl = document.getElementById('sell-image').value.trim();
+            const imageInput = document.getElementById('sell-images');
+            const imageFile = imageInput && imageInput.files ? imageInput.files[0] : null;
             const description = document.getElementById('sell-description').value.trim();
 
             if (!name || !priceRaw || !phone || !description) {
@@ -1251,7 +2119,13 @@
             const safePrice = Number.isFinite(price) ? price.toFixed(2).replace(/\.00$/, '') : priceRaw;
             const placeholderImage =
                 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=500&q=80';
+            const imageFileUrl = imageFile ? URL.createObjectURL(imageFile) : '';
             const grid = document.getElementById('product-grid');
+
+            if (currentUser && location) {
+                upsertUserProfile({ user: currentUser, location });
+                loadProfile(currentUser);
+            }
 
             if (!grid) return;
 
@@ -1259,7 +2133,9 @@
             card.className = 'group cursor-pointer';
             card.dataset.product = name;
             card.dataset.price = String(safePrice);
-            card.dataset.tags = tags || name.toLowerCase();
+            const baseTags = tags || name.toLowerCase();
+            card.dataset.tags = category ? `${baseTags} ${category}` : baseTags;
+            if (category) card.dataset.category = category;
             card.dataset.description = description;
             card.dataset.size = size || '—';
             card.dataset.condition = condition || '—';
@@ -1267,14 +2143,15 @@
             card.dataset.material = material || '—';
             card.dataset.location = location || '—';
             card.dataset.sellerPhone = phone;
+            card.dataset.tryon = imageFileUrl || imageUrl || placeholderImage;
 
-            const image = imageUrl || placeholderImage;
+            const image = imageFileUrl || imageUrl || placeholderImage;
             card.innerHTML = `
                 <div class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
                     <img src="${image}" class="w-full h-full object-cover group-hover:scale-105 transition" alt="${name}">
                 </div>
                 <h3 class="font-bold">${name}</h3>
-                <p class="text-[#adff2f]">$${safePrice}</p>
+                <p class="text-[#adff2f]">${formatMoney(safePrice)}</p>
             `;
 
             grid.prepend(card);
@@ -1287,30 +2164,55 @@
 
         function openTryOnModal() {
             const productModal = document.getElementById('product-modal');
-            const tryonModal = document.getElementById('tryon-modal');
-            const tryonImage = document.getElementById('tryon-modal-image');
             const tryonName = document.getElementById('tryon-modal-name');
-
-            if (!tryonModal) return;
-
-            const productName = productModal ? productModal.dataset.product : 'This product';
-            const productImage = document.getElementById('product-modal-image');
+            const productName = productModal ? productModal.dataset.product : 'Try-On Studio';
+            const overlaySrc = productModal ? (productModal.dataset.tryon || productModal.dataset.image) : '';
+            const tags = productModal ? (productModal.dataset.tags || '') : '';
 
             if (tryonName) tryonName.textContent = productName;
-            if (tryonImage && productImage) {
-                tryonImage.src = productImage.src;
-                tryonImage.alt = productName;
-            }
 
-            tryonModal.classList.remove('hidden');
-            tryonModal.classList.add('flex');
+            tryOnState.returnPage = getActivePageId();
+            showPage('tryon-page');
+            closeProductModal();
+            setAutoFitEnabled(true);
+
+            setTryOnItemData({
+                id: null,
+                name: productName,
+                image: overlaySrc,
+                tryon: overlaySrc,
+                tags: tags
+            });
+            startTryOnCamera();
         }
 
         function closeTryOnModal() {
-            const tryonModal = document.getElementById('tryon-modal');
-            if (!tryonModal) return;
-            tryonModal.classList.add('hidden');
-            tryonModal.classList.remove('flex');
+            stopTryOnCamera();
+            showPage(tryOnState.returnPage || 'home-page');
+        }
+
+        function openTryOnStudio() {
+            const tryonName = document.getElementById('tryon-modal-name');
+            const overlay = document.getElementById('tryon-overlay');
+            if (tryonName) tryonName.textContent = 'Try-On Studio';
+            tryOnState.returnPage = getActivePageId();
+            showPage('tryon-page');
+            resetTryOnControls();
+            if (overlay) overlay.src = '';
+            renderTryOnItemOptions();
+            setAutoFitEnabled(true);
+            startTryOnCamera();
+        }
+
+        function openTryOnFromCart(itemId) {
+            const item = cartItems.find(entry => entry.id === itemId);
+            if (!item) return;
+            tryOnState.returnPage = 'cart-page';
+            showPage('tryon-page');
+            renderTryOnItemOptions();
+            setTryOnItemData(item);
+            setAutoFitEnabled(true);
+            startTryOnCamera();
         }
 
         // Search + Chatbot
@@ -1336,22 +2238,97 @@
             return null;
         }
 
+        function escapeRegExp(value) {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function parseSearchFields(query) {
+            let remaining = normalizeText(query);
+
+            const extract = (pattern) => {
+                const match = remaining.match(pattern);
+                if (!match) return null;
+                const value = match[1].trim();
+                remaining = remaining.replace(match[0], ' ').replace(/\s{2,}/g, ' ').trim();
+                return value;
+            };
+
+            const location = extract(/(?:location:|in)\s+([a-z0-9][a-z0-9\s-]*)/);
+            const size = extract(/(?:size:|size)\s+([a-z0-9.+-]+)/);
+            const color = extract(/(?:color:|color)\s+([a-z0-9][a-z0-9\s-]*)/);
+            const material = extract(/(?:material:|material)\s+([a-z0-9][a-z0-9\s-]*)/);
+            const condition = extract(/(?:condition:|condition)\s+([a-z0-9][a-z0-9\s-]*)/);
+            const category = extract(/(?:category:|category|area:|area)\s+([a-z0-9][a-z0-9\s-]*)/);
+            const tagValue = extract(/(?:tag:|tags:|tag|tags)\s+([a-z0-9][a-z0-9\s,-]*)/);
+
+            const tags = tagValue
+                ? tagValue.split(',').map(item => item.trim()).filter(Boolean)
+                : [];
+
+            remaining = remaining
+                .replace(/(?:under|less|below|over|above|more|>=|<=|>|<)?\s*(?:₹|\$)?\s*\d+/g, ' ')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+
+            return {
+                remaining,
+                location,
+                size,
+                color,
+                material,
+                condition,
+                category,
+                tags
+            };
+        }
+
         function getMatchedCards(query) {
             const q = normalizeText(query);
             const priceRule = parsePriceQuery(q);
+            const fields = parseSearchFields(q);
+            const cleanedQuery = fields.remaining;
 
             return getProductCards().filter(card => {
                 const name = normalizeText(card.dataset.product);
                 const tags = normalizeText(card.dataset.tags);
+                const location = normalizeText(card.dataset.location);
+                const size = normalizeText(card.dataset.size);
+                const color = normalizeText(card.dataset.color);
+                const material = normalizeText(card.dataset.material);
+                const condition = normalizeText(card.dataset.condition);
+                const category = normalizeText(card.dataset.category);
+                const description = normalizeText(card.dataset.description);
                 const price = parseFloat(card.dataset.price || '0');
-                const textMatch = !q || name.includes(q) || tags.includes(q);
+                const textMatch = !cleanedQuery
+                    || name.includes(cleanedQuery)
+                    || tags.includes(cleanedQuery)
+                    || description.includes(cleanedQuery)
+                    || location.includes(cleanedQuery);
+                const locationMatch = !fields.location || location.includes(fields.location);
+                const sizeMatch = !fields.size || size.includes(fields.size);
+                const colorMatch = !fields.color || color.includes(fields.color);
+                const materialMatch = !fields.material || material.includes(fields.material);
+                const conditionMatch = !fields.condition || condition.includes(fields.condition);
+                const categoryMatch = !fields.category
+                    || category.includes(fields.category)
+                    || tags.includes(fields.category);
+                const tagMatch = fields.tags.length === 0
+                    || fields.tags.every(tag => tags.includes(tag));
 
                 let priceMatch = true;
                 if (priceRule) {
                     priceMatch = priceRule.type === 'min' ? price >= priceRule.value : price <= priceRule.value;
                 }
 
-                return textMatch && priceMatch;
+                return textMatch
+                    && priceMatch
+                    && locationMatch
+                    && sizeMatch
+                    && colorMatch
+                    && materialMatch
+                    && conditionMatch
+                    && categoryMatch
+                    && tagMatch;
             });
         }
 
@@ -1392,18 +2369,24 @@
 
         function getMatchesSummary(query) {
             const q = normalizeText(query);
+            const fields = parseSearchFields(q);
             const matches = getMatchedCards(q);
 
             if (!q) return 'Tell me what you are looking for, like sneakers or jacket.';
-            if (matches.length === 0) return 'No matching products. Try tee, jacket, pants, sneakers, or under $50.';
+            if (matches.length === 0) {
+                return fields.location
+                    ? `No matching products in ${fields.location}. Try a different location or product.`
+                    : 'No matching products. Try tee, jacket, pants, sneakers, or under ₹50.';
+            }
 
             const names = matches.slice(0, 3).map(card => card.dataset.product);
             const moreCount = matches.length - names.length;
-            return `I found ${matches.length} item(s): ${names.join(', ')}${moreCount > 0 ? ` and ${moreCount} more` : ''}.`;
+            const locationLabel = fields.location ? ` in ${fields.location}` : '';
+            return `I found ${matches.length} item(s)${locationLabel}: ${names.join(', ')}${moreCount > 0 ? ` and ${moreCount} more` : ''}.`;
         }
 
         function renderChatSuggestions() {
-            const suggestions = ['sneakers', 'jacket', 'pants', 'tee', 'under $50', 'over $80'];
+            const suggestions = ['sneakers', 'jacket', 'pants', 'tee', 'under ₹50', 'over ₹80'];
             const container = document.getElementById('chatbot-suggestions');
             if (!container) return;
             container.innerHTML = '';
@@ -1414,16 +2397,49 @@
                 btn.textContent = text;
                 btn.addEventListener('click', () => {
                     addChatMessage(text, true);
-                    handleSearchInput(text);
+                    handleSearchInput(text, { syncInputs: false });
                     addChatMessage(getMatchesSummary(text), false);
                 });
                 container.appendChild(btn);
             });
         }
 
-        function handleSearchInput(value) {
+        function handleSearchInput(value, options = {}) {
+            const { syncInputs = true } = options;
+            if (value) {
+                showPage('home-page');
+            }
             filterProducts(value);
-            syncSearchInputs(value);
+            if (syncInputs) {
+                syncSearchInputs(value);
+            }
+            if (value) {
+                requestAnimationFrame(() => {
+                    const grid = document.getElementById('product-grid');
+                    if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+        }
+
+        function handleOmegaNavigation(query) {
+            const q = normalizeText(query);
+            const targets = [
+                { patterns: ['home', 'shop', 'store', 'products'], page: 'home-page', label: 'Home' },
+                { patterns: ['sell', 'list', 'list item', 'start selling'], page: 'sell-page', label: 'Sell' },
+                { patterns: ['cart', 'bag', 'checkout'], page: 'cart-page', label: 'Cart' },
+                { patterns: ['wishlist', 'liked', 'favorites'], page: 'liked-page', label: 'Wishlist' },
+                { patterns: ['contact', 'support', 'help'], page: 'contact-page', label: 'Contact' },
+                { patterns: ['profile', 'account', 'settings'], page: 'profile-page', label: 'Profile' },
+                { patterns: ['try-on', 'tryon', 'camera'], page: 'tryon-page', label: 'Try-On' },
+                { patterns: ['login', 'log in', 'sign in'], page: 'login-page', label: 'Login' },
+                { patterns: ['signup', 'sign up', 'register', 'create account'], page: 'signup-page', label: 'Signup' }
+            ];
+
+            const target = targets.find(entry => entry.patterns.some(pattern => q.includes(pattern)));
+            if (!target) return null;
+
+            showPage(target.page);
+            return target.label;
         }
 
         function handleChatSend() {
@@ -1432,8 +2448,13 @@
             const value = input.value.trim();
             if (!value) return;
             addChatMessage(value, true);
-            handleSearchInput(value);
-            addChatMessage(getMatchesSummary(value), false);
+            const navLabel = handleOmegaNavigation(value);
+            if (navLabel) {
+                addChatMessage(`Opening ${navLabel}.`, false);
+            } else {
+                handleSearchInput(value, { syncInputs: false });
+                addChatMessage(getMatchesSummary(value), false);
+            }
             input.value = '';
         }
 
@@ -1483,7 +2504,7 @@
                 const transcript = event.results[0][0].transcript.trim();
                 if (transcript) {
                     addChatMessage(transcript, true);
-                    handleSearchInput(transcript);
+                    handleSearchInput(transcript, { syncInputs: false });
                     addChatMessage(getMatchesSummary(transcript), false);
                 }
             };
@@ -1504,10 +2525,13 @@
             // Show intro page by default
             showPage('intro-page');
 
+            initSupabaseAuth();
+
             updateAuthUI();
             updateListingsCount();
             renderCart();
             renderWishlist();
+            renderTryOnItemOptions();
 
             const searchInput = document.getElementById('product-search');
             const searchMobile = document.getElementById('product-search-mobile');
@@ -1543,6 +2567,9 @@
                 chatInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') handleChatSend();
                 });
+                chatInput.addEventListener('input', (e) => {
+                    handleSearchInput(e.target.value, { syncInputs: false });
+                });
             }
 
             const sellForm = document.getElementById('sell-form');
@@ -1564,6 +2591,20 @@
             const modalCall = document.getElementById('product-modal-call');
             const modalWhatsapp = document.getElementById('product-modal-whatsapp');
             const modalLike = document.getElementById('product-modal-like');
+            const tryonClose = document.getElementById('tryon-modal-close');
+            const tryonStart = document.getElementById('tryon-start');
+            const tryonStop = document.getElementById('tryon-stop');
+            const tryonSnap = document.getElementById('tryon-snap');
+            const tryonReset = document.getElementById('tryon-reset');
+            const tryonFile = document.getElementById('tryon-file');
+            const tryonScale = document.getElementById('tryon-scale');
+            const tryonRotate = document.getElementById('tryon-rotate');
+            const tryonOffsetX = document.getElementById('tryon-offset-x');
+            const tryonOffsetY = document.getElementById('tryon-offset-y');
+            const tryonSelect = document.getElementById('tryon-item-select');
+            const tryonApply = document.getElementById('tryon-item-apply');
+            const tryonAuto = document.getElementById('tryon-auto');
+            const cartTryOnBtn = document.getElementById('cart-tryon-btn');
             if (modalClose) modalClose.addEventListener('click', closeProductModal);
             if (modalBackdrop) modalBackdrop.addEventListener('click', closeProductModal);
             if (modalAdd) {
@@ -1576,6 +2617,77 @@
             if (modalTryOn) modalTryOn.addEventListener('click', openTryOnModal);
             if (modalCall) modalCall.addEventListener('click', handleCallSellerClick);
             if (modalWhatsapp) modalWhatsapp.addEventListener('click', handleWhatsappSellerClick);
+            if (tryonClose) tryonClose.addEventListener('click', closeTryOnModal);
+            if (tryonStart) tryonStart.addEventListener('click', startTryOnCamera);
+            if (tryonStop) tryonStop.addEventListener('click', stopTryOnCamera);
+            if (tryonSnap) tryonSnap.addEventListener('click', captureTryOnSnapshot);
+            if (tryonReset) tryonReset.addEventListener('click', resetTryOnControls);
+            if (tryonFile) {
+                tryonFile.addEventListener('change', (event) => {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    if (tryOnState.overlayUrl) URL.revokeObjectURL(tryOnState.overlayUrl);
+                    tryOnState.overlayUrl = URL.createObjectURL(file);
+                    applyTryOnOverlay(tryOnState.overlayUrl);
+                });
+            }
+            if (tryonScale) {
+                tryonScale.addEventListener('input', (event) => {
+                    disableAutoFitOnManual();
+                    tryOnState.scale = parseFloat(event.target.value);
+                    updateOverlayTransform();
+                });
+            }
+            if (tryonRotate) {
+                tryonRotate.addEventListener('input', (event) => {
+                    disableAutoFitOnManual();
+                    tryOnState.rotate = parseFloat(event.target.value);
+                    updateOverlayTransform();
+                });
+            }
+            if (tryonOffsetX) {
+                tryonOffsetX.addEventListener('input', (event) => {
+                    disableAutoFitOnManual();
+                    tryOnState.offsetX = parseFloat(event.target.value);
+                    updateOverlayTransform();
+                });
+            }
+            if (tryonOffsetY) {
+                tryonOffsetY.addEventListener('input', (event) => {
+                    disableAutoFitOnManual();
+                    tryOnState.offsetY = parseFloat(event.target.value);
+                    updateOverlayTransform();
+                });
+            }
+            if (tryonSelect) {
+                tryonSelect.addEventListener('change', (event) => {
+                    const id = event.target.value;
+                    if (id) applyTryOnItemById(id);
+                });
+            }
+            if (tryonApply) {
+                tryonApply.addEventListener('click', () => {
+                    const id = tryonSelect ? tryonSelect.value : '';
+                    if (id) applyTryOnItemById(id);
+                });
+            }
+            if (tryonAuto) {
+                tryonAuto.addEventListener('change', (event) => {
+                    setAutoFitEnabled(event.target.checked);
+                });
+            }
+            if (cartTryOnBtn) {
+                cartTryOnBtn.addEventListener('click', () => {
+                    if (cartItems.length === 0) {
+                        alert('Your cart is empty. Add items to try them on.');
+                        return;
+                    }
+                    openTryOnStudio();
+                    renderTryOnItemOptions();
+                    if (cartItems[0]) applyTryOnItemById(cartItems[0].id);
+                });
+            }
+            setupTryOnDrag();
             if (modalLike) {
                 modalLike.addEventListener('click', () => {
                     const modal = document.getElementById('product-modal');
@@ -1594,6 +2706,8 @@
                         price: parseFloat(modal.dataset.price || '0'),
                         size,
                         image: modal.dataset.image || '',
+                        tryon: modal.dataset.tryon || modal.dataset.image || '',
+                        tags: modal.dataset.tags || '',
                         description: modal.dataset.description || 'Details coming soon.',
                         condition: modal.dataset.condition || '—',
                         color: modal.dataset.color || '—',
@@ -1605,15 +2719,6 @@
                     modalLike.classList.remove('text-white');
                 });
             }
-
-            const tryonClose = document.getElementById('tryon-modal-close');
-            const tryonBackdrop = document.getElementById('tryon-modal-backdrop');
-            const tryonUse = document.getElementById('tryon-modal-use');
-            if (tryonClose) tryonClose.addEventListener('click', closeTryOnModal);
-            if (tryonBackdrop) tryonBackdrop.addEventListener('click', closeTryOnModal);
-            if (tryonUse) tryonUse.addEventListener('click', () => {
-                alert('Virtual try-on is a demo in this version.');
-            });
 
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
