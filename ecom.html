@@ -459,7 +459,8 @@
                     <div>
                         <h2 id="profile-name" class="heading text-2xl">John Doe</h2>
                         <p id="profile-meta" class="text-zinc-500">Student at State University</p>
-                        <p id="profile-phone" class="text-zinc-400 text-sm mt-1">Email: —</p>
+                        <p id="profile-email" class="text-zinc-400 text-sm mt-1">Email: —</p>
+                        <p id="profile-phone" class="text-zinc-400 text-sm">Phone: —</p>
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
@@ -565,6 +566,18 @@
                 <button onclick="setAccountPassword()"
                     class="mt-4 w-full md:w-auto bg-[#adff2f] text-black py-3 px-6 rounded-xl font-bold hover:opacity-90 transition">SAVE
                     PASSWORD</button>
+            </div>
+
+            <div class="glass p-6 rounded-2xl mt-6">
+                <h4 class="font-bold mb-4 border-b border-zinc-800 pb-3">Phone Number</h4>
+                <p class="text-zinc-500 text-sm mb-4">Add a phone number for seller contact.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input id="profile-phone-input" type="tel" placeholder="Phone (e.g., +911234567890)"
+                        class="w-full p-4 rounded-xl">
+                </div>
+                <button onclick="setProfilePhone()"
+                    class="mt-4 w-full md:w-auto bg-[#adff2f] text-black py-3 px-6 rounded-xl font-bold hover:opacity-90 transition">SAVE
+                    PHONE</button>
             </div>
         </div>
     </div>
@@ -862,6 +875,7 @@
 
         let isLoggedIn = false;
         let currentUser = null;
+        let currentProfilePhone = '';
         let listingsCount = 0;
         const cartItems = [];
         const likedItems = [];
@@ -1504,6 +1518,29 @@
             }
         }
 
+        async function setProfilePhone() {
+            if (!currentUser) {
+                alert('Please log in to update your phone.');
+                return;
+            }
+
+            const input = document.getElementById('profile-phone-input');
+            const phone = input ? input.value.trim() : '';
+
+            if (!phone) {
+                alert('Please enter a phone number.');
+                return;
+            }
+
+            try {
+                await upsertUserProfile({ user: currentUser, phone });
+                setProfileUI({ name: currentUser.user_metadata?.name, email: currentUser.email, phone });
+                alert('Phone updated successfully.');
+            } catch (error) {
+                alert(error?.message || 'Phone update failed.');
+            }
+        }
+
         function paymentMethods() {
             alert('Payment methods page would open here');
         }
@@ -1539,31 +1576,84 @@
             alert(`Added "${itemName}" to your bag!`);
         }
 
-        function addToWishlist(item) {
+        async function addToWishlist(item) {
             if (!item || !item.name) return false;
-            const exists = likedItems.some(
-                entry => entry.name === item.name && entry.size === item.size
+            if (!isLoggedIn) {
+                alert('Please log in to save items to your wishlist.');
+                showPage('login-page');
+                return false;
+            }
+            const exists = likedItems.some(entry => entry.productId
+                ? entry.productId === item.productId
+                : entry.name === item.name && entry.size === item.size
             );
             if (exists) {
                 return false;
             }
-            likedItems.unshift({ ...item, id: `${item.name}-${Date.now()}` });
+
+            let productId = item.productId;
+            if (currentUser && !productId) {
+                productId = await ensureSupabaseProduct({
+                    productId: null,
+                    name: item.name,
+                    price: Number(item.price) || 0,
+                    tags: item.tags || '',
+                    category: item.category || '',
+                    size: item.size || '',
+                    condition: item.condition || '',
+                    color: item.color || '',
+                    material: item.material || '',
+                    location: item.location || '',
+                    seller_phone: item.sellerPhone || '',
+                    description: item.description || '',
+                    image_url: item.image || '',
+                    tryon_url: item.tryon || item.image || ''
+                });
+            }
+
+            const newItem = { ...item, id: `${item.name}-${Date.now()}`, productId: productId || null };
+
+            if (currentUser && productId) {
+                const { data, error } = await supabaseClient
+                    .from('liked_items')
+                    .upsert({ user_id: currentUser.id, product_id: productId }, { onConflict: 'user_id,product_id' })
+                    .select('id')
+                    .single();
+                if (!error && data) {
+                    newItem.id = data.id;
+                }
+            }
+
+            likedItems.unshift(newItem);
             renderWishlist();
             return true;
         }
 
-        function removeFromWishlist(name, size) {
-            const index = likedItems.findIndex(
-                entry => entry.name === name && entry.size === size
+        async function removeFromWishlist(name, size, productId, likedRowId) {
+            const index = likedItems.findIndex(entry => entry.productId
+                ? entry.productId === productId
+                : entry.name === name && entry.size === size
             );
             if (index === -1) return false;
+
+            const item = likedItems[index];
             likedItems.splice(index, 1);
             renderWishlist();
+
+            if (currentUser && (likedRowId || item.id)) {
+                await supabaseClient
+                    .from('liked_items')
+                    .delete()
+                    .eq('id', likedRowId || item.id);
+            }
             return true;
         }
 
-        function isItemLiked(name, size) {
-            return likedItems.some(entry => entry.name === name && entry.size === size);
+        function isItemLiked(name, size, productId) {
+            return likedItems.some(entry => entry.productId
+                ? entry.productId === productId
+                : entry.name === name && entry.size === size
+            );
         }
 
         // Product Details Modal
@@ -1576,12 +1666,14 @@
             const price = card.dataset.price || '';
             const description = card.dataset.description || 'Details coming soon.';
             const tags = card.dataset.tags || '';
+            const category = card.dataset.category || '';
             const size = card.dataset.size || '—';
             const condition = card.dataset.condition || '—';
             const color = card.dataset.color || '—';
             const material = card.dataset.material || '—';
             const location = card.dataset.location || '—';
             const sellerPhone = (card.dataset.sellerPhone || '').trim();
+            const productId = card.dataset.productId || '';
 
             const modalImage = document.getElementById('product-modal-image');
             const modalName = document.getElementById('product-modal-name');
@@ -1622,20 +1714,22 @@
                 modal.dataset.image = image ? image.src : '';
                 modal.dataset.tryon = card.dataset.tryon || modal.dataset.image;
                 modal.dataset.tags = tags;
+                modal.dataset.category = category;
                 modal.dataset.description = description;
                 modal.dataset.condition = condition;
                 modal.dataset.color = color;
                 modal.dataset.material = material;
                 modal.dataset.location = location;
                 modal.dataset.sellerPhone = sellerPhone;
+                modal.dataset.productId = productId;
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
 
             const likeBtn = document.getElementById('product-modal-like');
             if (likeBtn) {
-                likeBtn.classList.toggle('text-red-500', isItemLiked(name, size));
-                likeBtn.classList.toggle('text-white', !isItemLiked(name, size));
+                likeBtn.classList.toggle('text-red-500', isItemLiked(name, size, productId));
+                likeBtn.classList.toggle('text-white', !isItemLiked(name, size, productId));
             }
         }
 
@@ -1646,72 +1740,133 @@
             modal.classList.remove('flex');
         }
 
-        function addToCart(itemName) {
+        function findCartItemIndex(productId, name, size) {
+            if (productId) {
+                return cartItems.findIndex(item => item.productId === productId);
+            }
+            return cartItems.findIndex(item => item.name === name && item.size === size);
+        }
+
+        async function addToCart(itemName) {
             if (!itemName) return;
+            if (!isLoggedIn) {
+                alert('Please log in to add items to your cart.');
+                showPage('login-page');
+                return;
+            }
             const modal = document.getElementById('product-modal');
-            const priceValue = modal ? modal.dataset.price : '';
-            const sizeValue = modal ? modal.dataset.size : '';
-            const imageValue = modal ? modal.dataset.image : '';
-            const descriptionValue = modal ? modal.dataset.description : '';
-            const conditionValue = modal ? modal.dataset.condition : '';
-            const colorValue = modal ? modal.dataset.color : '';
-            const materialValue = modal ? modal.dataset.material : '';
-            const locationValue = modal ? modal.dataset.location : '';
-            const sellerPhoneValue = modal ? modal.dataset.sellerPhone : '';
-            const tagsValue = modal ? modal.dataset.tags : '';
-            const tryonValue = modal ? modal.dataset.tryon : '';
-            const price = parseFloat(priceValue || '0');
+            const payload = buildProductPayloadFromModal(modal);
+            const sizeValue = payload.size || '—';
 
-            const existing = cartItems.find(
-                item => item.name === itemName && item.size === (sizeValue || '—')
-            );
-
-            if (existing) {
+            const existingIndex = findCartItemIndex(payload.productId, itemName, sizeValue);
+            if (existingIndex >= 0) {
+                const existing = cartItems[existingIndex];
                 existing.quantity += 1;
                 renderCart();
+
+                if (currentUser && existing.id && payload.productId) {
+                    await supabaseClient
+                        .from('cart_items')
+                        .update({ quantity: existing.quantity })
+                        .eq('id', existing.id);
+                }
+
                 closeProductModal();
                 return;
             }
 
-            cartItems.push({
-                id: `${itemName}-${Date.now()}`,
-                name: itemName,
-                price: Number.isFinite(price) ? price : 0,
-                size: sizeValue || '—',
-                image: imageValue || '',
-                quantity: 1,
-                description: descriptionValue || 'Details coming soon.',
-                condition: conditionValue || '—',
-                color: colorValue || '—',
-                material: materialValue || '—',
-                location: locationValue || '—',
-                sellerPhone: sellerPhoneValue || '',
-                tags: tagsValue || '',
-                tryon: tryonValue || imageValue || ''
-            });
+            let productId = payload.productId;
+            if (currentUser) {
+                productId = await ensureSupabaseProduct(payload);
+            }
 
+            const newItem = {
+                id: `${itemName}-${Date.now()}`,
+                productId: productId || null,
+                name: itemName,
+                price: Number(payload.price) || 0,
+                size: sizeValue,
+                image: payload.image_url || '',
+                category: payload.category || '',
+                quantity: 1,
+                description: payload.description || 'Details coming soon.',
+                condition: payload.condition || '—',
+                color: payload.color || '—',
+                material: payload.material || '—',
+                location: payload.location || '—',
+                sellerPhone: payload.seller_phone || '',
+                tags: payload.tags || '',
+                tryon: payload.tryon_url || payload.image_url || ''
+            };
+
+            if (currentUser && productId) {
+                const { data, error } = await supabaseClient
+                    .from('cart_items')
+                    .upsert({ user_id: currentUser.id, product_id: productId, quantity: 1 }, { onConflict: 'user_id,product_id' })
+                    .select('id, quantity')
+                    .single();
+                if (!error && data) {
+                    newItem.id = data.id;
+                    newItem.quantity = data.quantity || 1;
+                }
+            }
+
+            cartItems.push(newItem);
             renderCart();
             closeProductModal();
         }
 
-        function addToCartFromItem(item) {
+        async function addToCartFromItem(item) {
             if (!item || !item.name) return;
-            const existing = cartItems.find(
-                entry => entry.name === item.name && entry.size === item.size
-            );
+            if (!isLoggedIn) {
+                alert('Please log in to add items to your cart.');
+                showPage('login-page');
+                return;
+            }
+            const existingIndex = findCartItemIndex(item.productId, item.name, item.size || '—');
 
-            if (existing) {
+            if (existingIndex >= 0) {
+                const existing = cartItems[existingIndex];
                 existing.quantity += 1;
                 renderCart();
+
+                if (currentUser && existing.id && item.productId) {
+                    await supabaseClient
+                        .from('cart_items')
+                        .update({ quantity: existing.quantity })
+                        .eq('id', existing.id);
+                }
                 return;
             }
 
-            cartItems.push({
+            let productId = item.productId;
+            if (currentUser && !productId) {
+                productId = await ensureSupabaseProduct({
+                    productId: null,
+                    name: item.name,
+                    price: Number(item.price) || 0,
+                    tags: item.tags || '',
+                    category: item.category || '',
+                    size: item.size || '',
+                    condition: item.condition || '',
+                    color: item.color || '',
+                    material: item.material || '',
+                    location: item.location || '',
+                    seller_phone: item.sellerPhone || '',
+                    description: item.description || '',
+                    image_url: item.image || '',
+                    tryon_url: item.tryon || item.image || ''
+                });
+            }
+
+            const newItem = {
                 id: `${item.name}-${Date.now()}`,
+                productId: productId || null,
                 name: item.name,
                 price: Number.isFinite(item.price) ? item.price : 0,
                 size: item.size || '—',
                 image: item.image || '',
+                category: item.category || '',
                 quantity: 1,
                 description: item.description || 'Details coming soon.',
                 condition: item.condition || '—',
@@ -1721,8 +1876,21 @@
                 sellerPhone: item.sellerPhone || '',
                 tags: item.tags || '',
                 tryon: item.tryon || item.image || ''
-            });
+            };
 
+            if (currentUser && productId) {
+                const { data, error } = await supabaseClient
+                    .from('cart_items')
+                    .upsert({ user_id: currentUser.id, product_id: productId, quantity: 1 }, { onConflict: 'user_id,product_id' })
+                    .select('id, quantity')
+                    .single();
+                if (!error && data) {
+                    newItem.id = data.id;
+                    newItem.quantity = data.quantity || 1;
+                }
+            }
+
+            cartItems.push(newItem);
             renderCart();
         }
 
@@ -1816,15 +1984,44 @@
                 modal.dataset.image = item.image || '';
                 modal.dataset.tryon = item.tryon || item.image || '';
                 modal.dataset.tags = item.tags || '';
+                modal.dataset.category = item.category || '';
                 modal.dataset.description = item.description || '';
                 modal.dataset.condition = item.condition || '';
                 modal.dataset.color = item.color || '';
                 modal.dataset.material = item.material || '';
                 modal.dataset.location = item.location || '';
                 modal.dataset.sellerPhone = item.sellerPhone || '';
+                modal.dataset.productId = item.productId || '';
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
+        }
+
+        async function syncCartItemToSupabase(item) {
+            if (!currentUser || !item || !item.productId) return;
+            if (item.quantity <= 0) {
+                await supabaseClient
+                    .from('cart_items')
+                    .delete()
+                    .eq('product_id', item.productId)
+                    .eq('user_id', currentUser.id);
+                return;
+            }
+
+            if (item.id) {
+                await supabaseClient
+                    .from('cart_items')
+                    .update({ quantity: item.quantity })
+                    .eq('id', item.id);
+                return;
+            }
+
+            const { data } = await supabaseClient
+                .from('cart_items')
+                .upsert({ user_id: currentUser.id, product_id: item.productId, quantity: item.quantity }, { onConflict: 'user_id,product_id' })
+                .select('id')
+                .single();
+            if (data?.id) item.id = data.id;
         }
 
         function renderCart() {
@@ -1878,16 +2075,20 @@
             if (totalEl) totalEl.textContent = formatMoney(subtotal);
 
             itemsContainer.querySelectorAll('[data-remove-id]').forEach((btn) => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     const id = btn.getAttribute('data-remove-id');
                     const index = cartItems.findIndex(item => item.id === id);
-                    if (index !== -1) cartItems.splice(index, 1);
+                    if (index !== -1) {
+                        const item = cartItems[index];
+                        cartItems.splice(index, 1);
+                        await syncCartItemToSupabase({ ...item, quantity: 0 });
+                    }
                     renderCart();
                 });
             });
 
             itemsContainer.querySelectorAll('[data-qty-minus]').forEach((btn) => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     const id = btn.getAttribute('data-qty-minus');
                     const item = cartItems.find(entry => entry.id === id);
                     if (!item) return;
@@ -1896,16 +2097,18 @@
                         const index = cartItems.findIndex(entry => entry.id === id);
                         if (index !== -1) cartItems.splice(index, 1);
                     }
+                    await syncCartItemToSupabase(item);
                     renderCart();
                 });
             });
 
             itemsContainer.querySelectorAll('[data-qty-plus]').forEach((btn) => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     const id = btn.getAttribute('data-qty-plus');
                     const item = cartItems.find(entry => entry.id === id);
                     if (!item) return;
                     item.quantity = (item.quantity || 1) + 1;
+                    await syncCartItemToSupabase(item);
                     renderCart();
                 });
             });
@@ -1962,21 +2165,21 @@
             });
 
             container.querySelectorAll('[data-wish-add]').forEach((btn) => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     const id = btn.getAttribute('data-wish-add');
                     const item = likedItems.find(entry => entry.id === id);
                     if (!item) return;
-                    addToCartFromItem(item);
+                    await addToCartFromItem(item);
                     showPage('cart-page');
                 });
             });
 
             container.querySelectorAll('[data-wish-remove]').forEach((btn) => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     const id = btn.getAttribute('data-wish-remove');
-                    const index = likedItems.findIndex(entry => entry.id === id);
-                    if (index !== -1) likedItems.splice(index, 1);
-                    renderWishlist();
+                    const item = likedItems.find(entry => entry.id === id);
+                    if (!item) return;
+                    await removeFromWishlist(item.name, item.size, item.productId, item.id);
                 });
             });
         }
@@ -1990,25 +2193,32 @@
             if (logoutBtn) logoutBtn.classList.toggle('hidden', !isLoggedIn);
         }
 
-        function setProfileUI({ name, email, location }) {
+        function setProfileUI({ name, email, phone, location }) {
             const nameEl = document.getElementById('profile-name');
             const metaEl = document.getElementById('profile-meta');
+            const emailEl = document.getElementById('profile-email');
             const phoneEl = document.getElementById('profile-phone');
+            const phoneInput = document.getElementById('profile-phone-input');
 
             const safeName = name || 'CampusSwap Member';
             const safeMeta = location ? `Location: ${location}` : 'Student at State University';
-            const safePhone = email ? `Email: ${email}` : 'Email: —';
+            const safeEmail = email ? `Email: ${email}` : 'Email: —';
+            const safePhone = phone ? `Phone: ${phone}` : 'Phone: —';
+            currentProfilePhone = phone || '';
 
             if (nameEl) nameEl.textContent = safeName;
             if (metaEl) metaEl.textContent = safeMeta;
+            if (emailEl) emailEl.textContent = safeEmail;
             if (phoneEl) phoneEl.textContent = safePhone;
+            if (phoneInput) phoneInput.value = phone || '';
         }
 
-        async function upsertUserProfile({ user, name, email, location }) {
+        async function upsertUserProfile({ user, name, email, phone, location }) {
             if (!user) return;
             const payload = { id: user.id };
             if (name) payload.full_name = name;
             if (email) payload.email = email;
+            if (phone) payload.phone = phone;
             if (location) payload.location = location;
 
             const { error } = await supabaseClient.from('profiles').upsert(payload, { onConflict: 'id' });
@@ -2025,18 +2235,19 @@
 
             const { data, error } = await supabaseClient
                 .from('profiles')
-                .select('full_name, email, location')
+                .select('full_name, email, phone, location')
                 .eq('id', user.id)
                 .single();
 
             if (error || !data) {
-                setProfileUI({ name: user.user_metadata?.name, email: user.email });
+                setProfileUI({ name: user.user_metadata?.name, email: user.email, phone: null });
                 return;
             }
 
             setProfileUI({
                 name: data.full_name || user.user_metadata?.name,
                 email: data.email || user.email,
+                phone: data.phone || null,
                 location: data.location || null
             });
         }
@@ -2076,10 +2287,202 @@
                 updateAuthUI();
                 if (currentUser) {
                     loadProfile(currentUser);
+                    loadCartFromSupabase();
+                    loadWishlistFromSupabase();
+                    loadProductsFromSupabase();
                 } else {
                     setProfileUI({});
+                    cartItems.length = 0;
+                    likedItems.length = 0;
+                    renderCart();
+                    renderWishlist();
                 }
             });
+        }
+
+        function buildProductPayloadFromModal(modal) {
+            const priceValue = modal ? modal.dataset.price : '';
+            const price = parseFloat(priceValue || '0');
+            return {
+                productId: modal ? modal.dataset.productId : '',
+                name: modal ? modal.dataset.product : '',
+                price: Number.isFinite(price) ? price : 0,
+                tags: modal ? modal.dataset.tags || '' : '',
+                category: modal ? modal.dataset.category || '' : '',
+                size: modal ? modal.dataset.size || '' : '',
+                condition: modal ? modal.dataset.condition || '' : '',
+                color: modal ? modal.dataset.color || '' : '',
+                material: modal ? modal.dataset.material || '' : '',
+                location: modal ? modal.dataset.location || '' : '',
+                seller_phone: modal ? modal.dataset.sellerPhone || '' : '',
+                description: modal ? modal.dataset.description || '' : '',
+                image_url: modal ? modal.dataset.image || '' : '',
+                tryon_url: modal ? modal.dataset.tryon || '' : ''
+            };
+        }
+
+        async function ensureSupabaseProduct(payload) {
+            if (!currentUser) return null;
+            if (payload.productId) return payload.productId;
+
+            const { data: existing } = await supabaseClient
+                .from('products')
+                .select('id')
+                .eq('name', payload.name)
+                .eq('price', payload.price)
+                .eq('seller_phone', payload.seller_phone)
+                .limit(1)
+                .maybeSingle();
+
+            if (existing?.id) return existing.id;
+
+            const { data, error } = await supabaseClient
+                .from('products')
+                .insert({
+                    user_id: currentUser.id,
+                    name: payload.name,
+                    price: payload.price,
+                    tags: payload.tags,
+                    category: payload.category,
+                    size: payload.size,
+                    condition: payload.condition,
+                    color: payload.color,
+                    material: payload.material,
+                    location: payload.location,
+                    seller_phone: payload.seller_phone,
+                    description: payload.description,
+                    image_url: payload.image_url,
+                    tryon_url: payload.tryon_url
+                })
+                .select('id')
+                .single();
+
+            if (error) {
+                console.warn('Product insert failed.', error);
+                return null;
+            }
+
+            return data?.id || null;
+        }
+
+        function createProductCard(product, source) {
+            const card = document.createElement('div');
+            card.className = 'group cursor-pointer';
+            if (source) card.dataset.source = source;
+            card.dataset.productId = product.id || '';
+            card.dataset.product = product.name || 'Product';
+            card.dataset.price = String(product.price || '');
+            card.dataset.tags = product.tags || '';
+            if (product.category) card.dataset.category = product.category;
+            card.dataset.description = product.description || 'Details coming soon.';
+            card.dataset.size = product.size || '—';
+            card.dataset.condition = product.condition || '—';
+            card.dataset.color = product.color || '—';
+            card.dataset.material = product.material || '—';
+            card.dataset.location = product.location || '—';
+            card.dataset.sellerPhone = product.seller_phone || '';
+            card.dataset.tryon = product.tryon_url || product.image_url || '';
+
+            const imageSrc = product.image_url || product.tryon_url || '';
+            card.innerHTML = `
+                <div class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
+                    ${imageSrc ? `<img src="${imageSrc}" class="w-full h-full object-cover group-hover:scale-105 transition" alt="${product.name || 'Product'}">` : ''}
+                </div>
+                <h3 class="font-bold">${product.name || 'Product'}</h3>
+                <p class="text-[#adff2f]">${formatMoney(product.price || 0)}</p>
+            `;
+            return card;
+        }
+
+        function renderSupabaseProducts(products) {
+            const grid = document.getElementById('product-grid');
+            if (!grid) return;
+            grid.querySelectorAll('[data-source="supabase"]').forEach(card => card.remove());
+            products.forEach((product) => {
+                grid.prepend(createProductCard(product, 'supabase'));
+            });
+        }
+
+        async function loadProductsFromSupabase() {
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.warn('Products load failed.', error);
+                return;
+            }
+
+            renderSupabaseProducts(data || []);
+            if (currentUser) {
+                listingsCount = (data || []).filter(item => item.user_id === currentUser.id).length;
+                updateListingsCount();
+            }
+        }
+
+        function buildCartItemFromProduct(product, cartRow) {
+            return {
+                id: cartRow?.id || product.id,
+                productId: product.id,
+                name: product.name || 'Product',
+                price: Number(product.price) || 0,
+                size: product.size || '—',
+                image: product.image_url || '',
+                category: product.category || '',
+                quantity: cartRow?.quantity || 1,
+                description: product.description || 'Details coming soon.',
+                condition: product.condition || '—',
+                color: product.color || '—',
+                material: product.material || '—',
+                location: product.location || '—',
+                sellerPhone: product.seller_phone || '',
+                tags: product.tags || '',
+                tryon: product.tryon_url || product.image_url || ''
+            };
+        }
+
+        async function loadCartFromSupabase() {
+            if (!currentUser) return;
+            const { data, error } = await supabaseClient
+                .from('cart_items')
+                .select('id, quantity, product:products(*)')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.warn('Cart load failed.', error);
+                return;
+            }
+
+            cartItems.length = 0;
+            (data || []).forEach((row) => {
+                if (!row.product) return;
+                cartItems.push(buildCartItemFromProduct(row.product, row));
+            });
+            renderCart();
+        }
+
+        async function loadWishlistFromSupabase() {
+            if (!currentUser) return;
+            const { data, error } = await supabaseClient
+                .from('liked_items')
+                .select('id, product:products(*)')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.warn('Wishlist load failed.', error);
+                return;
+            }
+
+            likedItems.length = 0;
+            (data || []).forEach((row) => {
+                if (!row.product) return;
+                likedItems.push({
+                    ...buildCartItemFromProduct(row.product, { id: row.id, quantity: 1 }),
+                    id: row.id
+                });
+            });
+            renderWishlist();
         }
 
         function updateListingsCount() {
@@ -2087,7 +2490,7 @@
             if (count) count.textContent = String(listingsCount);
         }
 
-        function handleSellSubmit(event) {
+        async function handleSellSubmit(event) {
             event.preventDefault();
             if (!isLoggedIn) {
                 alert('Please log in or sign up to sell an item.');
@@ -2110,7 +2513,9 @@
             const imageFile = imageInput && imageInput.files ? imageInput.files[0] : null;
             const description = document.getElementById('sell-description').value.trim();
 
-            if (!name || !priceRaw || !phone || !description) {
+            const phoneToUse = currentProfilePhone || phone;
+
+            if (!name || !priceRaw || !phoneToUse || !description) {
                 alert('Please fill in the required fields.');
                 return;
             }
@@ -2122,44 +2527,66 @@
             const imageFileUrl = imageFile ? URL.createObjectURL(imageFile) : '';
             const grid = document.getElementById('product-grid');
 
-            if (currentUser && location) {
-                upsertUserProfile({ user: currentUser, location });
+            if (currentUser && (location || phoneToUse)) {
+                upsertUserProfile({ user: currentUser, location, phone: phoneToUse });
                 loadProfile(currentUser);
             }
 
             if (!grid) return;
 
-            const card = document.createElement('div');
-            card.className = 'group cursor-pointer';
-            card.dataset.product = name;
-            card.dataset.price = String(safePrice);
             const baseTags = tags || name.toLowerCase();
-            card.dataset.tags = category ? `${baseTags} ${category}` : baseTags;
-            if (category) card.dataset.category = category;
-            card.dataset.description = description;
-            card.dataset.size = size || '—';
-            card.dataset.condition = condition || '—';
-            card.dataset.color = color || '—';
-            card.dataset.material = material || '—';
-            card.dataset.location = location || '—';
-            card.dataset.sellerPhone = phone;
-            card.dataset.tryon = imageFileUrl || imageUrl || placeholderImage;
+            const imageForDb = imageUrl || placeholderImage;
+            const tryonForDb = imageUrl || placeholderImage;
+            const imageForUi = imageFileUrl || imageUrl || placeholderImage;
 
-            const image = imageFileUrl || imageUrl || placeholderImage;
-            card.innerHTML = `
-                <div class="aspect-[3/4] bg-zinc-900 rounded-2xl mb-4 overflow-hidden border border-zinc-800 hover:border-[#adff2f] transition">
-                    <img src="${image}" class="w-full h-full object-cover group-hover:scale-105 transition" alt="${name}">
-                </div>
-                <h3 class="font-bold">${name}</h3>
-                <p class="text-[#adff2f]">${formatMoney(safePrice)}</p>
-            `;
+            let productId = '';
+            try {
+                if (currentUser) {
+                    const { data, error } = await supabaseClient
+                        .from('products')
+                        .insert({
+                            user_id: currentUser.id,
+                            name,
+                            price: Number(safePrice) || 0,
+                            tags: category ? `${baseTags} ${category}` : baseTags,
+                            category: category || null,
+                            description,
+                            size: size || null,
+                            condition: condition || null,
+                            color: color || null,
+                            material: material || null,
+                            location: location || null,
+                            seller_phone: phoneToUse,
+                            image_url: imageForDb,
+                            tryon_url: tryonForDb
+                        })
+                        .select('*')
+                        .single();
 
-            grid.prepend(card);
-            listingsCount += 1;
-            updateListingsCount();
-            event.target.reset();
-            alert('Item listed successfully!');
-            showPage('home-page');
+                    if (error) throw error;
+                    if (data) {
+                        productId = data.id;
+                        const card = createProductCard(
+                            {
+                                ...data,
+                                seller_phone: phoneToUse,
+                                image_url: imageForUi,
+                                tryon_url: imageForUi
+                            },
+                            'supabase'
+                        );
+                        grid.prepend(card);
+                        listingsCount += 1;
+                        updateListingsCount();
+                    }
+                }
+
+                event.target.reset();
+                alert('Item listed successfully!');
+                showPage('home-page');
+            } catch (error) {
+                alert(error?.message || 'Listing failed. Please try again.');
+            }
         }
 
         function openTryOnModal() {
@@ -2526,6 +2953,7 @@
             showPage('intro-page');
 
             initSupabaseAuth();
+            loadProductsFromSupabase();
 
             updateAuthUI();
             updateListingsCount();
@@ -2689,24 +3117,27 @@
             }
             setupTryOnDrag();
             if (modalLike) {
-                modalLike.addEventListener('click', () => {
+                modalLike.addEventListener('click', async () => {
                     const modal = document.getElementById('product-modal');
                     if (!modal) return;
                     const name = modal.dataset.product || 'Product';
                     const size = modal.dataset.size || '—';
-                    if (isItemLiked(name, size)) {
-                        removeFromWishlist(name, size);
+                    const productId = modal.dataset.productId || '';
+                    if (isItemLiked(name, size, productId)) {
+                        await removeFromWishlist(name, size, productId);
                         modalLike.classList.remove('text-red-500');
                         modalLike.classList.add('text-white');
                         return;
                     }
 
-                    addToWishlist({
+                    await addToWishlist({
                         name,
                         price: parseFloat(modal.dataset.price || '0'),
                         size,
                         image: modal.dataset.image || '',
                         tryon: modal.dataset.tryon || modal.dataset.image || '',
+                        productId: productId || null,
+                        category: modal.dataset.category || '',
                         tags: modal.dataset.tags || '',
                         description: modal.dataset.description || 'Details coming soon.',
                         condition: modal.dataset.condition || '—',
