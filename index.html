@@ -374,6 +374,8 @@
                 <div class="space-y-4">
                     <input id="login-email" type="email" placeholder="Email (e.g., you@gmail.com)"
                         class="w-full p-4 rounded-xl" autocomplete="email">
+                    <input id="login-password" type="password" placeholder="Password (optional)"
+                        class="w-full p-4 rounded-xl" autocomplete="current-password">
                     <input id="login-otp" type="text" inputmode="numeric" placeholder="OTP Code (optional)"
                         class="w-full p-4 rounded-xl">
                     <button onclick="loginUser()"
@@ -381,7 +383,7 @@
                         LINK / VERIFY</button>
 
                     <div class="text-center pt-2">
-                        <p class="text-xs text-zinc-500">Enter your email, tap Send Link, then verify.</p>
+                        <p class="text-xs text-zinc-500">Use password or enter email, tap Send Link, then verify.</p>
                     </div>
                     <div class="text-center pt-4">
                         <p class="text-sm text-zinc-500">
@@ -416,6 +418,8 @@
                     <input type="text" placeholder="Full Name" class="w-full p-4 rounded-xl">
                     <input id="signup-email" type="email" placeholder="Email (e.g., you@gmail.com)"
                         class="w-full p-4 rounded-xl" autocomplete="email">
+                    <input id="signup-password" type="password" placeholder="Create password (min 6 chars)"
+                        class="w-full p-4 rounded-xl" autocomplete="new-password">
                     <input id="signup-otp" type="text" inputmode="numeric" placeholder="OTP Code (optional)"
                         class="w-full p-4 rounded-xl">
 
@@ -429,7 +433,7 @@
                         </label>
                     </div>
 
-                    <p class="text-xs text-zinc-500">Tap Send Link, then verify your email.</p>
+                    <p class="text-xs text-zinc-500">Use password or tap Send Link, then verify your email.</p>
 
                     <button onclick="signupUser()"
                         class="w-full bg-[#adff2f] text-black py-4 rounded-xl font-bold hover:opacity-90 transition mt-4">SEND
@@ -1348,6 +1352,7 @@
         // Login Page Functions
         async function loginUser() {
             const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
             const otp = document.getElementById('login-otp').value.trim();
 
             if (!email) {
@@ -1361,6 +1366,22 @@
             }
 
             try {
+                if (password) {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+
+                    currentUser = data?.user || null;
+                    await upsertUserProfile({ user: currentUser, name: currentUser?.user_metadata?.name, email });
+                    await loadProfile(currentUser);
+
+                    isLoggedIn = !!data?.session;
+                    updateAuthUI();
+                    showPage('home-page');
+                    alert('Login successful.');
+                    document.getElementById('login-password').value = '';
+                    return;
+                }
+
                 if (!otp) {
                     const { error } = await supabaseClient.auth.signInWithOtp({ email });
                     if (error) throw error;
@@ -1389,6 +1410,7 @@
         async function signupUser() {
             const name = document.querySelector('#signup-page input[type="text"]').value.trim();
             const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value.trim();
             const otp = document.getElementById('signup-otp').value.trim();
             const terms = document.querySelector('#signup-page input[type="checkbox"]').checked;
 
@@ -1408,6 +1430,35 @@
             }
 
             try {
+                if (password) {
+                    if (password.length < 6) {
+                        alert('Password should be at least 6 characters.');
+                        return;
+                    }
+
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email,
+                        password,
+                        options: { data: { name } }
+                    });
+                    if (error) throw error;
+
+                    currentUser = data?.user || null;
+                    if (currentUser) {
+                        await upsertUserProfile({ user: currentUser, name, email });
+                        await loadProfile(currentUser);
+                    }
+
+                    isLoggedIn = !!data?.session;
+                    updateAuthUI();
+                    if (isLoggedIn) {
+                        showPage('home-page');
+                    }
+                    alert('Account created. Check your email to confirm if required.');
+                    document.getElementById('signup-password').value = '';
+                    return;
+                }
+
                 if (!otp) {
                     pendingSignupName = name;
                     const { error } = await supabaseClient.auth.signInWithOtp({ email });
