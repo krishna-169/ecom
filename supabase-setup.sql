@@ -1,3 +1,27 @@
+-- Product Reviews & Ratings
+create table if not exists public.reviews (
+    id uuid primary key default gen_random_uuid(),
+    product_id uuid references public.products(id) on delete cascade,
+    user_id uuid references auth.users(id) on delete cascade,
+    rating integer not null check (rating >= 1 and rating <= 5),
+    text text,
+    created_at timestamp with time zone default now()
+);
+
+alter table public.reviews enable row level security;
+
+drop policy if exists "Reviews are viewable by everyone" on public.reviews;
+drop policy if exists "Reviews are insertable by owner" on public.reviews;
+
+create policy "Reviews are viewable by everyone"
+    on public.reviews
+    for select
+    using (true);
+
+create policy "Reviews are insertable by owner"
+    on public.reviews
+    for insert
+    with check (auth.uid() = user_id);
 create extension if not exists "pgcrypto";
 
 -- Profiles table for OTP users
