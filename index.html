@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta name="theme-color" content="#adff2f">
     <script>
         // Register service worker for PWA support
@@ -172,6 +173,39 @@
         <h1 onclick="showPage('home-page')" class="heading text-xl font-black cursor-pointer">C<span
                 class="text-[#adff2f]">S</span></h1>
         <div class="flex items-center space-x-6">
+            <button id="admin-nav-btn" onclick="showPage('admin-dashboard')"
+                class="hidden text-xs font-bold border border-red-500 px-4 py-1 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition">ADMIN</button>
+            <!-- ADMIN DASHBOARD PAGE -->
+            <div id="admin-dashboard" class="page-section">
+                <div class="mb-8">
+                    <h3 class="text-lg font-bold mb-2">Analytics</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <canvas id="userGrowthChart" height="120"></canvas>
+                        <canvas id="productGrowthChart" height="120"></canvas>
+                    </div>
+                </div>
+                <div class="p-8 max-w-3xl mx-auto">
+                    <h2 class="heading text-4xl mb-6 text-red-500">Admin Dashboard</h2>
+                    <div id="admin-stats" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="glass p-6 rounded-2xl">
+                            <h3 class="text-lg font-bold mb-2">Total Users</h3>
+                            <div id="admin-total-users" class="text-3xl font-black">...</div>
+                        </div>
+                        <div class="glass p-6 rounded-2xl">
+                            <h3 class="text-lg font-bold mb-2">Total Products</h3>
+                            <div id="admin-total-products" class="text-3xl font-black">...</div>
+                        </div>
+                        <div class="glass p-6 rounded-2xl">
+                            <h3 class="text-lg font-bold mb-2">Recent Signups</h3>
+                            <ul id="admin-recent-signups" class="text-sm"></ul>
+                        </div>
+                        <div class="glass p-6 rounded-2xl">
+                            <h3 class="text-lg font-bold mb-2">Recent Listings</h3>
+                            <ul id="admin-recent-products" class="text-sm"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="hidden md:flex items-center bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1">
                 <i class="fa-solid fa-magnifying-glass text-zinc-500 text-xs mr-2"></i>
                 <input id="product-search" type="text" placeholder="Search products..."
@@ -372,8 +406,18 @@
                 <div class="space-y-4">
                     <input id="login-email" type="email" placeholder="Email (e.g., you@gmail.com)"
                         class="w-full p-4 rounded-xl" autocomplete="email">
-                    <input id="login-password" type="password" placeholder="Password (optional)"
-                        class="w-full p-4 rounded-xl" autocomplete="current-password">
+                    <div class="relative">
+                        <input id="login-password" type="password" placeholder="Password (optional)"
+                            class="w-full p-4 rounded-xl pr-12" autocomplete="current-password">
+                        <span class="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                            onclick="togglePasswordVisibility('login-password', this)">
+                            <i class="fa-regular fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="text-right mb-2">
+                        <a href="#" class="text-xs text-[#adff2f] hover:underline font-bold"
+                            onclick="sendResetPassword()">Forgot Password?</a>
+                    </div>
                     <!-- OTP input removed as per request, functionality remains in JS -->
                     <button onclick="loginUser()"
                         class="w-full bg-white text-black py-4 rounded-xl font-bold hover:bg-opacity-90 transition">SEND
@@ -415,6 +459,14 @@
                     <input type="text" placeholder="Full Name" class="w-full p-4 rounded-xl">
                     <input id="signup-email" type="email" placeholder="Email (e.g., you@gmail.com)"
                         class="w-full p-4 rounded-xl" autocomplete="email">
+                    <div class="relative">
+                        <input id="signup-password" type="password" placeholder="Password (optional)"
+                            class="w-full p-4 rounded-xl pr-12" autocomplete="new-password">
+                        <span class="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                            onclick="togglePasswordVisibility('signup-password', this)">
+                            <i class="fa-regular fa-eye"></i>
+                        </span>
+                    </div>
                     <!-- Password and OTP fields removed as per request, functionality remains in JS -->
 
                     <div class="flex items-start space-x-2 mt-2">
@@ -3660,21 +3712,172 @@
         class="transition-all duration-300"></div>
     <script>
         function showNotification(message, type = 'info', duration = 3000) {
-            const box = document.getElementById('notification-box');
-            if (!box) return;
-            let bg = 'bg-[#adff2f] text-black border-2 border-[#adff2f]';
-            if (type === 'error') bg = 'bg-red-600 text-white border-2 border-red-400';
-            if (type === 'success') bg = 'bg-green-600 text-white border-2 border-green-400';
-            if (type === 'info') bg = 'bg-[#adff2f] text-black border-2 border-[#adff2f]';
-            box.className = `transition-all duration-300 px-8 py-5 rounded-2xl text-center font-bold text-base shadow-2xl ${bg}`;
-            box.textContent = message;
-            box.style.display = 'block';
-            box.style.opacity = '1';
-            clearTimeout(box._timeout);
-            box._timeout = setTimeout(() => {
-                box.style.opacity = '0';
-                setTimeout(() => { box.style.display = 'none'; }, 300);
-            }, duration);
+            // Show/hide admin nav button based on is_admin
+            async function updateAdminUI(profile) {
+                const adminBtn = document.getElementById('admin-nav-btn');
+                if (profile && profile.is_admin) {
+                    adminBtn.classList.remove('hidden');
+                } else {
+                    adminBtn.classList.add('hidden');
+                }
+            }
+
+            // Fetch and display admin dashboard stats
+            async function loadAdminDashboard() {
+                // User growth (last 7 days)
+                const { data: userGrowth } = await supabaseClient
+                    .from('profiles')
+                    .select('created_at')
+                    .order('created_at', { ascending: true });
+                const userGrowthData = Array(7).fill(0);
+                const userGrowthLabels = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    userGrowthLabels.push(d.toLocaleDateString());
+                    userGrowthData[6 - i] = userGrowth.filter(u => {
+                        const created = new Date(u.created_at);
+                        return created.toDateString() === d.toDateString();
+                    }).length;
+                }
+                if (window.userGrowthChart) window.userGrowthChart.destroy();
+                const ctx1 = document.getElementById('userGrowthChart').getContext('2d');
+                window.userGrowthChart = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: userGrowthLabels,
+                        datasets: [{
+                            label: 'New Users',
+                            data: userGrowthData,
+                            borderColor: '#adff2f',
+                            backgroundColor: 'rgba(173,255,47,0.2)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: { plugins: { legend: { display: false } } }
+                });
+
+                // Product growth (last 7 days)
+                const { data: productGrowth } = await supabaseClient
+                    .from('products')
+                    .select('created_at')
+                    .order('created_at', { ascending: true });
+                const productGrowthData = Array(7).fill(0);
+                const productGrowthLabels = userGrowthLabels;
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    productGrowthData[6 - i] = productGrowth.filter(p => {
+                        const created = new Date(p.created_at);
+                        return created.toDateString() === d.toDateString();
+                    }).length;
+                }
+                if (window.productGrowthChart) window.productGrowthChart.destroy();
+                const ctx2 = document.getElementById('productGrowthChart').getContext('2d');
+                window.productGrowthChart = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: productGrowthLabels,
+                        datasets: [{
+                            label: 'New Products',
+                            data: productGrowthData,
+                            borderColor: '#ff6384',
+                            backgroundColor: 'rgba(255,99,132,0.2)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: { plugins: { legend: { display: false } } }
+                });
+            }
+            // Total users
+            const { count: userCount } = await supabaseClient
+                .from('profiles')
+                .select('id', { count: 'exact', head: true });
+            document.getElementById('admin-total-users').textContent = userCount ?? '...';
+
+            // Total products
+            const { count: productCount } = await supabaseClient
+                .from('products')
+                .select('id', { count: 'exact', head: true });
+            document.getElementById('admin-total-products').textContent = productCount ?? '...';
+
+            // Recent signups
+            const { data: recentUsers } = await supabaseClient
+                .from('profiles')
+                .select('full_name, email, created_at')
+                .order('created_at', { ascending: false })
+                .limit(5);
+            const signupsList = document.getElementById('admin-recent-signups');
+            signupsList.innerHTML = recentUsers && recentUsers.length
+                ? recentUsers.map(u => `<li>${u.full_name || u.email} <span class="text-zinc-400">(${new Date(u.created_at).toLocaleDateString()})</span></li>`).join('')
+                : '<li>No recent signups.</li>';
+
+            // Recent products
+            const { data: recentProducts } = await supabaseClient
+                .from('products')
+                .select('name, created_at')
+                .order('created_at', { ascending: false })
+                .limit(5);
+            const productsList = document.getElementById('admin-recent-products');
+            productsList.innerHTML = recentProducts && recentProducts.length
+                ? recentProducts.map(p => `<li>${p.name} <span class="text-zinc-400">(${new Date(p.created_at).toLocaleDateString()})</span></li>`).join('')
+                : '<li>No recent listings.</li>';
+        }
+
+        // Show page and load admin dashboard if needed
+        const origShowPage = window.showPage;
+        window.showPage = function (pageId) {
+            origShowPage(pageId);
+            if (pageId === 'admin-dashboard') {
+                loadAdminDashboard();
+            }
+        }
+        const box = document.getElementById('notification-box');
+        if (!box) return;
+        let bg = 'bg-[#adff2f] text-black border-2 border-[#adff2f]';
+        if (type === 'error') bg = 'bg-red-600 text-white border-2 border-red-400';
+        if (type === 'success') bg = 'bg-green-600 text-white border-2 border-green-400';
+        if (type === 'info') bg = 'bg-[#adff2f] text-black border-2 border-[#adff2f]';
+        box.className = `transition-all duration-300 px-8 py-5 rounded-2xl text-center font-bold text-base shadow-2xl ${bg}`;
+        box.textContent = message;
+        box.style.display = 'block';
+        box.style.opacity = '1';
+        clearTimeout(box._timeout);
+        box._timeout = setTimeout(() => {
+            box.style.opacity = '0';
+            setTimeout(() => { box.style.display = 'none'; }, 300);
+        }, duration);
+        }
+        // Send password reset email using Supabase
+        async function sendResetPassword() {
+            const email = document.getElementById('login-email').value.trim();
+            if (!email) {
+                showNotification('Please enter your email above to reset password.', 'error');
+                return;
+            }
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+                if (error) throw error;
+                showNotification('Password reset link sent! Check your email.', 'success');
+            } catch (err) {
+                showNotification('Error sending reset link: ' + err.message, 'error');
+            }
+        }
+        // Password visibility toggle for login and signup
+        function togglePasswordVisibility(inputId, iconSpan) {
+            const input = document.getElementById(inputId);
+            const icon = iconSpan.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
         }
     </script>
 </body>
