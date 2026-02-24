@@ -4,18 +4,6 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta name="theme-color" content="#adff2f">
-    <script>
-        // Register service worker for PWA support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('service-worker.js').then(function (reg) {
-                    console.log('Service worker registered.', reg);
-                }, function (err) {
-                    console.warn('Service worker registration failed:', err);
-                });
-            });
-        }
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CampusSwap | Elevate Your Fit</title>
