@@ -3700,118 +3700,121 @@
         class="transition-all duration-300"></div>
     <script>
         function showNotification(message, type = 'info', duration = 3000) {
-            // Show/hide admin nav button based on is_admin
-            async function updateAdminUI(profile) {
-                const adminBtn = document.getElementById('admin-nav-btn');
-                if (profile && profile.is_admin) {
-                    adminBtn.classList.remove('hidden');
-                } else {
-                    adminBtn.classList.add('hidden');
-                }
+            // ...existing code...
+        }
+
+        // Show/hide admin nav button based on is_admin
+        async function updateAdminUI(profile) {
+            const adminBtn = document.getElementById('admin-nav-btn');
+            if (profile && profile.is_admin) {
+                adminBtn.classList.remove('hidden');
+            } else {
+                adminBtn.classList.add('hidden');
             }
+        }
 
-            // Fetch and display admin dashboard stats
-            async function loadAdminDashboard() {
-                // User growth (last 7 days)
-                const { data: userGrowth } = await supabaseClient
-                    .from('profiles')
-                    .select('created_at')
-                    .order('created_at', { ascending: true });
-                const userGrowthData = Array(7).fill(0);
-                const userGrowthLabels = [];
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    userGrowthLabels.push(d.toLocaleDateString());
-                    userGrowthData[6 - i] = userGrowth.filter(u => {
-                        const created = new Date(u.created_at);
-                        return created.toDateString() === d.toDateString();
-                    }).length;
-                }
-                if (window.userGrowthChart) window.userGrowthChart.destroy();
-                const ctx1 = document.getElementById('userGrowthChart').getContext('2d');
-                window.userGrowthChart = new Chart(ctx1, {
-                    type: 'line',
-                    data: {
-                        labels: userGrowthLabels,
-                        datasets: [{
-                            label: 'New Users',
-                            data: userGrowthData,
-                            borderColor: '#adff2f',
-                            backgroundColor: 'rgba(173,255,47,0.2)',
-                            fill: true,
-                            tension: 0.3
-                        }]
-                    },
-                    options: { plugins: { legend: { display: false } } }
-                });
-
-                // Product growth (last 7 days)
-                const { data: productGrowth } = await supabaseClient
-                    .from('products')
-                    .select('created_at')
-                    .order('created_at', { ascending: true });
-                const productGrowthData = Array(7).fill(0);
-                const productGrowthLabels = userGrowthLabels;
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    productGrowthData[6 - i] = productGrowth.filter(p => {
-                        const created = new Date(p.created_at);
-                        return created.toDateString() === d.toDateString();
-                    }).length;
-                }
-                if (window.productGrowthChart) window.productGrowthChart.destroy();
-                const ctx2 = document.getElementById('productGrowthChart').getContext('2d');
-                window.productGrowthChart = new Chart(ctx2, {
-                    type: 'line',
-                    data: {
-                        labels: productGrowthLabels,
-                        datasets: [{
-                            label: 'New Products',
-                            data: productGrowthData,
-                            borderColor: '#ff6384',
-                            backgroundColor: 'rgba(255,99,132,0.2)',
-                            fill: true,
-                            tension: 0.3
-                        }]
-                    },
-                    options: { plugins: { legend: { display: false } } }
-                });
+        // Fetch and display admin dashboard stats
+        async function loadAdminDashboard() {
+            // User growth (last 7 days)
+            const { data: userGrowth } = await supabaseClient
+                .from('profiles')
+                .select('created_at')
+                .order('created_at', { ascending: true });
+            const userGrowthData = Array(7).fill(0);
+            const userGrowthLabels = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                userGrowthLabels.push(d.toLocaleDateString());
+                userGrowthData[6 - i] = userGrowth.filter(u => {
+                    const created = new Date(u.created_at);
+                    return created.toDateString() === d.toDateString();
+                }).length;
             }
-            // Total users
-            const { count: userCount } = await supabaseClient
-                .from('profiles')
-                .select('id', { count: 'exact', head: true });
-            document.getElementById('admin-total-users').textContent = userCount ?? '...';
+            if (window.userGrowthChart) window.userGrowthChart.destroy();
+            const ctx1 = document.getElementById('userGrowthChart').getContext('2d');
+            window.userGrowthChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: userGrowthLabels,
+                    datasets: [{
+                        label: 'New Users',
+                        data: userGrowthData,
+                        borderColor: '#adff2f',
+                        backgroundColor: 'rgba(173,255,47,0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
 
-            // Total products
-            const { count: productCount } = await supabaseClient
+            // Product growth (last 7 days)
+            const { data: productGrowth } = await supabaseClient
                 .from('products')
-                .select('id', { count: 'exact', head: true });
-            document.getElementById('admin-total-products').textContent = productCount ?? '...';
+                .select('created_at')
+                .order('created_at', { ascending: true });
+            const productGrowthData = Array(7).fill(0);
+            const productGrowthLabels = userGrowthLabels;
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                productGrowthData[6 - i] = productGrowth.filter(p => {
+                    const created = new Date(p.created_at);
+                    return created.toDateString() === d.toDateString();
+                }).length;
+            }
+            if (window.productGrowthChart) window.productGrowthChart.destroy();
+            const ctx2 = document.getElementById('productGrowthChart').getContext('2d');
+            window.productGrowthChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: productGrowthLabels,
+                    datasets: [{
+                        label: 'New Products',
+                        data: productGrowthData,
+                        borderColor: '#ff6384',
+                        backgroundColor: 'rgba(255,99,132,0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
+        }
+        // Total users
+        const { count: userCount } = await supabaseClient
+            .from('profiles')
+            .select('id', { count: 'exact', head: true });
+        document.getElementById('admin-total-users').textContent = userCount ?? '...';
 
-            // Recent signups
-            const { data: recentUsers } = await supabaseClient
-                .from('profiles')
-                .select('full_name, email, created_at')
-                .order('created_at', { ascending: false })
-                .limit(5);
-            const signupsList = document.getElementById('admin-recent-signups');
-            signupsList.innerHTML = recentUsers && recentUsers.length
-                ? recentUsers.map(u => `<li>${u.full_name || u.email} <span class="text-zinc-400">(${new Date(u.created_at).toLocaleDateString()})</span></li>`).join('')
-                : '<li>No recent signups.</li>';
+        // Total products
+        const { count: productCount } = await supabaseClient
+            .from('products')
+            .select('id', { count: 'exact', head: true });
+        document.getElementById('admin-total-products').textContent = productCount ?? '...';
 
-            // Recent products
-            const { data: recentProducts } = await supabaseClient
-                .from('products')
-                .select('name, created_at')
-                .order('created_at', { ascending: false })
-                .limit(5);
-            const productsList = document.getElementById('admin-recent-products');
-            productsList.innerHTML = recentProducts && recentProducts.length
-                ? recentProducts.map(p => `<li>${p.name} <span class="text-zinc-400">(${new Date(p.created_at).toLocaleDateString()})</span></li>`).join('')
-                : '<li>No recent listings.</li>';
+        // Recent signups
+        const { data: recentUsers } = await supabaseClient
+            .from('profiles')
+            .select('full_name, email, created_at')
+            .order('created_at', { ascending: false })
+            .limit(5);
+        const signupsList = document.getElementById('admin-recent-signups');
+        signupsList.innerHTML = recentUsers && recentUsers.length
+            ? recentUsers.map(u => `<li>${u.full_name || u.email} <span class="text-zinc-400">(${new Date(u.created_at).toLocaleDateString()})</span></li>`).join('')
+            : '<li>No recent signups.</li>';
+
+        // Recent products
+        const { data: recentProducts } = await supabaseClient
+            .from('products')
+            .select('name, created_at')
+            .order('created_at', { ascending: false })
+            .limit(5);
+        const productsList = document.getElementById('admin-recent-products');
+        productsList.innerHTML = recentProducts && recentProducts.length
+            ? recentProducts.map(p => `<li>${p.name} <span class="text-zinc-400">(${new Date(p.created_at).toLocaleDateString()})</span></li>`).join('')
+            : '<li>No recent listings.</li>';
         }
 
         // Show page and load admin dashboard if needed
