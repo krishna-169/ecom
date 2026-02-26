@@ -1568,7 +1568,7 @@
 
             try {
                 if (password) {
-                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                     if (error) throw error;
 
                     currentUser = data?.user || null;
@@ -1627,7 +1627,7 @@
                         showNotification('Password should be at least 6 characters.', 'error');
                         return;
                     }
-                    const { data, error } = await supabaseClient.auth.signUp({
+                    const { data, error } = await supabase.auth.signUp({
                         email,
                         password,
                         options: { data: { name } }
@@ -1652,18 +1652,18 @@
 
                 if (!otp) {
                     pendingSignupName = name;
-                    const { error } = await supabaseClient.auth.signInWithOtp({ email });
+                    const { error } = await supabase.auth.signInWithOtp({ email });
                     if (error) throw error;
                     showNotification('Signup link sent. Check your email to verify. If you do not see the email, check your spam or junk folder.', 'info');
                     return;
                 }
 
-                const { data, error } = await supabaseClient.auth.verifyOtp({ email, token: otp, type: 'email' });
+                const { data, error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
                 if (error) throw error;
 
                 const profileName = name || pendingSignupName;
                 if (profileName) {
-                    await supabaseClient.auth.updateUser({ data: { name: profileName } });
+                    await supabase.auth.updateUser({ data: { name: profileName } });
                 }
 
                 currentUser = data?.user || null;
@@ -1777,7 +1777,7 @@
                 const location = document.getElementById('edit-profile-location').value.trim();
                 if (!name) { showNotification('Name cannot be empty.', 'error'); return; }
                 try {
-                    await supabaseClient.auth.updateUser({ data: { name } });
+                    await supabase.auth.updateUser({ data: { name } });
                     await upsertUserProfile({ user: currentUser, name, location });
                     setProfileUI({ name, email: currentUser.email, location });
                     showNotification('Profile updated!', 'success');
@@ -1815,7 +1815,7 @@
             }
 
             try {
-                const { error } = await supabaseClient.auth.updateUser({ password });
+                const { error } = await supabase.auth.updateUser({ password });
                 if (error) throw error;
                 document.getElementById('profile-password').value = '';
                 document.getElementById('profile-password-confirm').value = '';
@@ -1927,7 +1927,7 @@
             const newItem = { ...item, id: `${item.name}-${Date.now()}`, productId: productId || null };
 
             if (currentUser && productId) {
-                const { data, error } = await supabaseClient
+                const { data, error } = await supabase
                     .from('liked_items')
                     .upsert({ user_id: currentUser.id, product_id: productId }, { onConflict: 'user_id,product_id' })
                     .select('id')
@@ -1954,7 +1954,7 @@
             renderWishlist();
 
             if (currentUser && (likedRowId || item.id)) {
-                await supabaseClient
+                await supabase
                     .from('liked_items')
                     .delete()
                     .eq('id', likedRowId || item.id);
@@ -2078,7 +2078,7 @@
                 renderCart();
 
                 if (currentUser && existing.id && payload.productId) {
-                    await supabaseClient
+                    await supabase
                         .from('cart_items')
                         .update({ quantity: existing.quantity })
                         .eq('id', existing.id);
@@ -2113,7 +2113,7 @@
             };
 
             if (currentUser && productId) {
-                const { data, error } = await supabaseClient
+                const { data, error } = await supabase
                     .from('cart_items')
                     .upsert({ user_id: currentUser.id, product_id: productId, quantity: 1 }, { onConflict: 'user_id,product_id' })
                     .select('id, quantity')
@@ -2144,7 +2144,7 @@
                 renderCart();
 
                 if (currentUser && existing.id && item.productId) {
-                    await supabaseClient
+                    await supabase
                         .from('cart_items')
                         .update({ quantity: existing.quantity })
                         .eq('id', existing.id);
@@ -2192,7 +2192,7 @@
             };
 
             if (currentUser && productId) {
-                const { data, error } = await supabaseClient
+                const { data, error } = await supabase
                     .from('cart_items')
                     .upsert({ user_id: currentUser.id, product_id: productId, quantity: 1 }, { onConflict: 'user_id,product_id' })
                     .select('id, quantity')
@@ -2360,7 +2360,7 @@
         async function syncCartItemToSupabase(item) {
             if (!currentUser || !item || !item.productId) return;
             if (item.quantity <= 0) {
-                await supabaseClient
+                await supabase
                     .from('cart_items')
                     .delete()
                     .eq('product_id', item.productId)
@@ -2369,14 +2369,14 @@
             }
 
             if (item.id) {
-                await supabaseClient
+                await supabase
                     .from('cart_items')
                     .update({ quantity: item.quantity })
                     .eq('id', item.id);
                 return;
             }
 
-            const { data } = await supabaseClient
+            const { data } = await supabase
                 .from('cart_items')
                 .upsert({ user_id: currentUser.id, product_id: item.productId, quantity: item.quantity }, { onConflict: 'user_id,product_id' })
                 .select('id')
