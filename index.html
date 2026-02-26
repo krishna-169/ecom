@@ -106,21 +106,10 @@
         }
     </style>
     <script>
-        // --- Supabase Connectivity Debug ---
-        (async function testSupabaseConnection() {
-            try {
-                const { data, error } = await supabaseClient.from('profiles').select('*').limit(1);
-                if (error) {
-                    console.error('Supabase connection error:', error.message, error);
-                    alert('Supabase connection error: ' + error.message);
-                } else {
-                    console.log('Supabase connection successful:', data);
-                }
-            } catch (e) {
-                console.error('Supabase JS error:', e);
-                alert('Supabase JS error: ' + e.message);
-            }
-        })();
+        // Supabase client initialization
+        const SUPABASE_URL = 'https://exglpjoxzcbukvgqkuga.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4Z2xwam94emNidWt2Z3FrdWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMTkzNDMsImV4cCI6MjA4NzY5NTM0M30.FBQwbxStzFkV4YqIgmkkBe974FTukNOeic_T89fALBg';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         (function () {
             // Provided EmailJS credentials
             const EMAILJS_USER_ID = 'KdXa9yNjMW921AD00';
@@ -176,39 +165,7 @@
         <h1 onclick="showPage('home-page')" class="heading text-xl font-black cursor-pointer">C<span
                 class="text-[#adff2f]">S</span></h1>
         <div class="flex items-center space-x-6">
-            <button id="admin-nav-btn" onclick="showPage('admin-dashboard')"
-                class="hidden text-xs font-bold border border-red-500 px-4 py-1 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition">ADMIN</button>
-            <!-- ADMIN DASHBOARD PAGE -->
-            <div id="admin-dashboard" class="page-section">
-                <div class="mb-8">
-                    <h3 class="text-lg font-bold mb-2">Analytics</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <canvas id="userGrowthChart" height="120"></canvas>
-                        <canvas id="productGrowthChart" height="120"></canvas>
-                    </div>
-                </div>
-                <div class="p-8 max-w-3xl mx-auto">
-                    <h2 class="heading text-4xl mb-6 text-red-500">Admin Dashboard</h2>
-                    <div id="admin-stats" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div class="glass p-6 rounded-2xl">
-                            <h3 class="text-lg font-bold mb-2">Total Users</h3>
-                            <div id="admin-total-users" class="text-3xl font-black">...</div>
-                        </div>
-                        <div class="glass p-6 rounded-2xl">
-                            <h3 class="text-lg font-bold mb-2">Total Products</h3>
-                            <div id="admin-total-products" class="text-3xl font-black">...</div>
-                        </div>
-                        <div class="glass p-6 rounded-2xl">
-                            <h3 class="text-lg font-bold mb-2">Recent Signups</h3>
-                            <ul id="admin-recent-signups" class="text-sm"></ul>
-                        </div>
-                        <div class="glass p-6 rounded-2xl">
-                            <h3 class="text-lg font-bold mb-2">Recent Listings</h3>
-                            <ul id="admin-recent-products" class="text-sm"></ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Admin button and dashboard removed -->
             <div class="hidden md:flex items-center bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1">
                 <i class="fa-solid fa-magnifying-glass text-zinc-500 text-xs mr-2"></i>
                 <input id="product-search" type="text" placeholder="Search products..."
@@ -986,25 +943,7 @@
 
     <!-- MAIN SCRIPT -->
     <script>
-        const SUPABASE_URL = 'https://uwbylhsostgtkybnufvv.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3YnlsaHNvc3RndGt5Ym51ZnZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODU4MjcsImV4cCI6MjA4NTk2MTgyN30.qc0-GgAWg-uc6DuHMWqPLcZAmlaMwKrvOS3uOI0E620';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // --- Supabase Connectivity Debug ---
-        (async function testSupabaseConnection() {
-            try {
-                const { data, error } = await supabaseClient.from('profiles').select('*').limit(1);
-                if (error) {
-                    console.error('Supabase connection error:', error.message, error);
-                    alert('Supabase connection error: ' + error.message);
-                } else {
-                    console.log('Supabase connection successful:', data);
-                }
-            } catch (e) {
-                console.error('Supabase JS error:', e);
-                alert('Supabase JS error: ' + e.message);
-            }
-        })();
+        // Supabase client and debug removed
 
         let isLoggedIn = false;
         let currentUser = null;
@@ -3735,95 +3674,7 @@
     <script>
         // ...existing code...
 
-        // Show/hide admin nav button based on is_admin
-        async function updateAdminUI(profile) {
-            const adminBtn = document.getElementById('admin-nav-btn');
-            if (profile && profile.is_admin) {
-                adminBtn.classList.remove('hidden');
-            } else {
-                adminBtn.classList.add('hidden');
-            }
-        }
-
-        // Fetch and display admin dashboard stats
-        async function loadAdminDashboard() {
-            // User growth (last 7 days)
-            const { data: userGrowth } = await supabaseClient
-                .from('profiles')
-                .select('created_at')
-                .order('created_at', { ascending: true });
-            const userGrowthData = Array(7).fill(0);
-            const userGrowthLabels = [];
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                userGrowthLabels.push(d.toLocaleDateString());
-                userGrowthData[6 - i] = userGrowth.filter(u => {
-                    const created = new Date(u.created_at);
-                    return created.toDateString() === d.toDateString();
-                }).length;
-            }
-            if (window.userGrowthChart) window.userGrowthChart.destroy();
-            const ctx1 = document.getElementById('userGrowthChart').getContext('2d');
-            window.userGrowthChart = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: userGrowthLabels,
-                    datasets: [{
-                        label: 'New Users',
-                        data: userGrowthData,
-                        borderColor: '#adff2f',
-                        backgroundColor: 'rgba(173,255,47,0.2)',
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: { plugins: { legend: { display: false } } }
-            });
-
-            // Product growth (last 7 days)
-            const { data: productGrowth } = await supabaseClient
-                .from('products')
-                .select('created_at')
-                .order('created_at', { ascending: true });
-            const productGrowthData = Array(7).fill(0);
-            const productGrowthLabels = userGrowthLabels;
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                productGrowthData[6 - i] = productGrowth.filter(p => {
-                    const created = new Date(p.created_at);
-                    return created.toDateString() === d.toDateString();
-                }).length;
-            }
-            if (window.productGrowthChart) window.productGrowthChart.destroy();
-            const ctx2 = document.getElementById('productGrowthChart').getContext('2d');
-            window.productGrowthChart = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: productGrowthLabels,
-                    datasets: [{
-                        label: 'New Products',
-                        data: productGrowthData,
-                        borderColor: '#ff6384',
-                        backgroundColor: 'rgba(255,99,132,0.2)',
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: { plugins: { legend: { display: false } } }
-            });
-        }
-        // Total users
-        const { count: userCount } = await supabaseClient
-            .from('profiles')
-            .select('id', { count: 'exact', head: true });
-        document.getElementById('admin-total-users').textContent = userCount ?? '...';
-
-        // Total products
-        const { count: productCount } = await supabaseClient
-            .from('products')
-            .select('id', { count: 'exact', head: true });
+        // Admin UI and dashboard code fully removed
         document.getElementById('admin-total-products').textContent = productCount ?? '...';
 
         // Recent signups
