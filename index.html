@@ -613,6 +613,9 @@
                 }
                 // Call on page load and after relevant actions
                 document.addEventListener('DOMContentLoaded', renderSwapStats);
+                function showNotification(message, type = 'info', duration = 3000) {
+                    // ...existing code...
+                }
                 // Optionally, call renderSwapStats() after actions that change stats
             </script>
 
@@ -3699,9 +3702,7 @@
         style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;min-width:260px;max-width:90vw;"
         class="transition-all duration-300"></div>
     <script>
-        function showNotification(message, type = 'info', duration = 3000) {
-            // ...existing code...
-        }
+        // ...existing code...
 
         // Show/hide admin nav button based on is_admin
         async function updateAdminUI(profile) {
@@ -3815,7 +3816,7 @@
         productsList.innerHTML = recentProducts && recentProducts.length
             ? recentProducts.map(p => `<li>${p.name} <span class="text-zinc-400">(${new Date(p.created_at).toLocaleDateString()})</span></li>`).join('')
             : '<li>No recent listings.</li>';
-          // ...existing code...
+        // ...existing code...
 
         // Show page and load admin dashboard if needed
         const origShowPage = window.showPage;
@@ -3840,7 +3841,7 @@
             box.style.opacity = '0';
             setTimeout(() => { box.style.display = 'none'; }, 300);
         }, duration);
-            // ...existing code...
+        // ...existing code...
         // Send password reset email using Supabase
         async function sendResetPassword() {
             const email = document.getElementById('login-email').value.trim();
