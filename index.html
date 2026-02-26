@@ -982,7 +982,7 @@
         // --- Product Reviews & Ratings ---
         async function loadProductReviews(productId) {
             if (!productId) return { reviews: [], avg: 0, count: 0 };
-            const { data, error } = await supabaseClient
+            const { data, error } = await supabase
                 .from('reviews')
                 .select('id, user_id, rating, text, created_at, profiles(full_name)')
                 .eq('product_id', productId)
@@ -1070,7 +1070,7 @@
                 form.querySelector('button[type="submit"]').disabled = true;
                 msg.textContent = 'Submitting...';
                 msg.className = 'text-zinc-400 text-xs mt-1';
-                const { error } = await supabaseClient
+                const { error } = await supabase
                     .from('reviews')
                     .insert({
                         product_id: productId,
@@ -2564,7 +2564,7 @@
             if (phone) payload.phone = phone;
             if (location) payload.location = location;
 
-            const { error } = await supabaseClient.from('profiles').upsert(payload, { onConflict: 'id' });
+            const { error } = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
             if (error) {
                 console.warn('Profile upsert failed.', error);
             }
@@ -2576,7 +2576,7 @@
                 return;
             }
 
-            const { data, error } = await supabaseClient
+            const { data, error } = await supabase
                 .from('profiles')
                 .select('full_name, email, phone, location')
                 .eq('id', user.id)
@@ -2597,7 +2597,7 @@
 
         async function logoutUser() {
             try {
-                await supabaseClient.auth.signOut();
+                await supabase.auth.signOut();
             } catch (error) {
                 console.warn('Logout failed.', error);
             }
@@ -2610,7 +2610,7 @@
 
         async function initSupabaseAuth() {
             try {
-                const { data } = await supabaseClient.auth.getSession();
+                const { data } = await supabase.auth.getSession();
                 const session = data?.session;
                 currentUser = session?.user || null;
                 isLoggedIn = !!session;
@@ -2624,7 +2624,7 @@
                 console.warn('Supabase session check failed.', error);
             }
 
-            supabaseClient.auth.onAuthStateChange((_event, session) => {
+            supabase.auth.onAuthStateChange((_event, session) => {
                 currentUser = session?.user || null;
                 isLoggedIn = !!session;
                 updateAuthUI();
@@ -2668,7 +2668,7 @@
             if (!currentUser) return null;
             if (payload.productId) return payload.productId;
 
-            const { data: existing } = await supabaseClient
+            const { data: existing } = await supabase
                 .from('products')
                 .select('id')
                 .eq('name', payload.name)
@@ -2679,7 +2679,7 @@
 
             if (existing?.id) return existing.id;
 
-            const { data, error } = await supabaseClient
+            const { data, error } = await supabase
                 .from('products')
                 .insert({
                     user_id: currentUser.id,
@@ -2750,7 +2750,7 @@
                         btn.disabled = true;
                         btn.textContent = 'Deleting...';
                         try {
-                            const { error } = await window.supabaseClient
+                            const { error } = await supabase
                                 .from('products')
                                 .delete()
                                 .eq('id', product.id)
@@ -2796,7 +2796,7 @@
             let error = null;
             if (sort === 'rating') {
                 // Fetch products with average rating using a Supabase RPC or view (simulate client-side for now)
-                const { data: products, error: err } = await supabaseClient
+                const { data: products, error: err } = await supabase
                     .from('products')
                     .select('*, reviews:reviews(rating)');
                 error = err;
@@ -2808,7 +2808,7 @@
                 }
             } else if (sort === 'popularity') {
                 // Simulate popularity as number of reviews for now
-                const { data: products, error: err } = await supabaseClient
+                const { data: products, error: err } = await supabase
                     .from('products')
                     .select('*, reviews:reviews(id)');
                 error = err;
@@ -2818,7 +2818,7 @@
                 }
             } else {
                 // Default: sort by created_at or price
-                const { data: products, error: err } = await supabaseClient
+                const { data: products, error: err } = await supabase
                     .from('products')
                     .select('*')
                     .order(orderBy, { ascending });
@@ -2862,7 +2862,7 @@
 
         async function loadCartFromSupabase() {
             if (!currentUser) return;
-            const { data, error } = await supabaseClient
+            const { data, error } = await supabase
                 .from('cart_items')
                 .select('id, quantity, product:products(*)')
                 .order('created_at', { ascending: false });
@@ -2882,7 +2882,7 @@
 
         async function loadWishlistFromSupabase() {
             if (!currentUser) return;
-            const { data, error } = await supabaseClient
+            const { data, error } = await supabase
                 .from('liked_items')
                 .select('id, product:products(*)')
                 .order('created_at', { ascending: false });
@@ -2962,7 +2962,7 @@
             let productId = '';
             try {
                 if (currentUser) {
-                    const { data, error } = await supabaseClient
+                    const { data, error } = await supabase
                         .from('products')
                         .insert({
                             user_id: currentUser.id,
@@ -3678,7 +3678,7 @@
         document.getElementById('admin-total-products').textContent = productCount ?? '...';
 
         // Recent signups
-        const { data: recentUsers } = await supabaseClient
+        const { data: recentUsers } = await supabase
             .from('profiles')
             .select('full_name, email, created_at')
             .order('created_at', { ascending: false })
@@ -3689,7 +3689,7 @@
             : '<li>No recent signups.</li>';
 
         // Recent products
-        const { data: recentProducts } = await supabaseClient
+        const { data: recentProducts } = await supabase
             .from('products')
             .select('name, created_at')
             .order('created_at', { ascending: false })
@@ -3732,7 +3732,7 @@
                 return;
             }
             try {
-                const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+                const { error } = await supabase.auth.resetPasswordForEmail(email);
                 if (error) throw error;
                 showNotification('Password reset link sent! Check your email.', 'success');
             } catch (err) {
