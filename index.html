@@ -944,7 +944,14 @@
     <!-- MAIN SCRIPT -->
     <script>
 
-        // Supabase client and debug removed
+
+        // --- Supabase Client Initialization ---
+        // Replace with your actual Supabase URL and anon key
+        const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- End Supabase Client Initialization ---
 
         // --- Password Visibility Toggle ---
         function togglePasswordVisibility(id) {
