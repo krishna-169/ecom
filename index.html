@@ -943,7 +943,19 @@
 
     <!-- MAIN SCRIPT -->
     <script>
+
         // Supabase client and debug removed
+
+        // --- Password Visibility Toggle ---
+        function togglePasswordVisibility(id) {
+            const input = document.getElementById(id);
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+            } else {
+                input.type = 'password';
+            }
+        }
 
         let isLoggedIn = false;
         let currentUser = null;
@@ -1581,12 +1593,18 @@
 
         // Signup Page Functions
         async function signupUser() {
-            const name = document.querySelector('#signup-page input[type="text"]').value.trim();
-            const email = document.getElementById('signup-email').value.trim();
-            const password = document.getElementById('signup-password').value.trim();
-            const otp = document.getElementById('signup-otp').value.trim();
-            const terms = document.querySelector('#signup-page input[type="checkbox"]').checked;
+            // Defensive: check for all elements before accessing .value
+            const nameInput = document.querySelector('#signup-page input[type="text"]');
+            const emailInput = document.getElementById('signup-email');
+            const passwordInput = document.getElementById('signup-password');
+            const otpInput = document.getElementById('signup-otp');
+            const termsCheckbox = document.querySelector('#signup-page input[type="checkbox"]');
 
+            const name = nameInput ? nameInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value.trim() : '';
+            const otp = otpInput ? otpInput.value.trim() : '';
+            const terms = termsCheckbox ? termsCheckbox.checked : false;
 
             if (!name || !email) {
                 showNotification('Please fill in all required fields.', 'error');
@@ -1602,7 +1620,6 @@
                 showNotification('Please agree to the terms and conditions', 'error');
                 return;
             }
-
 
             try {
                 if (password) {
@@ -1629,7 +1646,7 @@
                         showPage('home-page');
                     }
                     showNotification('Account created. Check your email to confirm if required. If you do not see the email, check your spam or junk folder.', 'success');
-                    document.getElementById('signup-password').value = '';
+                    if (passwordInput) passwordInput.value = '';
                     return;
                 }
 
@@ -1657,7 +1674,7 @@
                 updateAuthUI();
                 showPage('home-page');
                 showNotification('Account created successfully!', 'success');
-                document.getElementById('signup-otp').value = '';
+                if (otpInput) otpInput.value = '';
             } catch (error) {
                 showNotification(error?.message || 'Signup failed. Please try again.', 'error');
             }
