@@ -106,6 +106,21 @@
         }
     </style>
     <script>
+        // --- Supabase Connectivity Debug ---
+        (async function testSupabaseConnection() {
+            try {
+                const { data, error } = await supabaseClient.from('profiles').select('*').limit(1);
+                if (error) {
+                    console.error('Supabase connection error:', error.message, error);
+                    alert('Supabase connection error: ' + error.message);
+                } else {
+                    console.log('Supabase connection successful:', data);
+                }
+            } catch (e) {
+                console.error('Supabase JS error:', e);
+                alert('Supabase JS error: ' + e.message);
+            }
+        })();
         (function () {
             // Provided EmailJS credentials
             const EMAILJS_USER_ID = 'KdXa9yNjMW921AD00';
