@@ -3815,7 +3815,7 @@
         productsList.innerHTML = recentProducts && recentProducts.length
             ? recentProducts.map(p => `<li>${p.name} <span class="text-zinc-400">(${new Date(p.created_at).toLocaleDateString()})</span></li>`).join('')
             : '<li>No recent listings.</li>';
-        }
+          // ...existing code...
 
         // Show page and load admin dashboard if needed
         const origShowPage = window.showPage;
@@ -3840,7 +3840,7 @@
             box.style.opacity = '0';
             setTimeout(() => { box.style.display = 'none'; }, 300);
         }, duration);
-        }
+            // ...existing code...
         // Send password reset email using Supabase
         async function sendResetPassword() {
             const email = document.getElementById('login-email').value.trim();
